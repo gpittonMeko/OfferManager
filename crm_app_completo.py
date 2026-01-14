@@ -3148,6 +3148,58 @@ def get_all_tasks():
     })
 
 
+@app.route('/api/tasks/user/<int:user_id>', methods=['GET'])
+def get_user_tasks(user_id):
+    """Ottieni tutte le task di un utente specifico (per visualizzazione profilo)"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Non autorizzato'}), 401
+    
+    try:
+        # Query tutte le attività dell'utente
+        tasks_query = text("""
+            SELECT t.id, t.task_type, t.description, t.assigned_to_id, t.due_date,
+                   t.is_completed, t.completed_at, t.opportunity_id, t.created_at,
+                   u.first_name || ' ' || u.last_name as assigned_to_name,
+                   o.name as opportunity_name, o.amount as opportunity_amount,
+                   a.name as account_name
+            FROM opportunity_tasks t
+            LEFT JOIN users u ON t.assigned_to_id = u.id
+            LEFT JOIN opportunities o ON t.opportunity_id = o.id
+            LEFT JOIN accounts a ON o.account_id = a.id
+            WHERE t.assigned_to_id = :user_id
+            ORDER BY t.due_date ASC NULLS LAST, t.created_at DESC
+        """)
+        tasks_results = db.session.execute(tasks_query, {'user_id': user_id}).fetchall()
+        
+        tasks_list = []
+        for row in tasks_results:
+            tasks_list.append({
+                'id': row[0],
+                'task_type': row[1],
+                'description': row[2] or '',
+                'assigned_to_id': row[3],
+                'assigned_to_name': row[9],
+                'due_date': row[4].isoformat() if row[4] and hasattr(row[4], 'isoformat') else (str(row[4]) if row[4] else None),
+                'is_completed': bool(row[5]),
+                'completed_at': row[6].isoformat() if row[6] and hasattr(row[6], 'isoformat') else (str(row[6]) if row[6] else None),
+                'opportunity_id': row[7],
+                'opportunity_name': row[10],
+                'opportunity_amount': float(row[11]) if row[11] else 0,
+                'account_name': row[12],
+                'created_at': row[8].isoformat() if row[8] and hasattr(row[8], 'isoformat') else (str(row[8]) if row[8] else None)
+            })
+        
+        return jsonify({
+            'tasks': tasks_list,
+            'total': len(tasks_list)
+        })
+    except Exception as e:
+        import traceback
+        print(f"Errore in get_user_tasks: {e}")
+        print(traceback.format_exc())
+        return jsonify({'error': str(e), 'tasks': [], 'total': 0}), 500
+
+
 @app.route('/api/tasks/<int:task_id>', methods=['PUT', 'DELETE'])
 def update_or_delete_global_task(task_id):
     """Aggiorna o elimina una task (globale o legata a opportunità)"""

@@ -3635,7 +3635,10 @@
             container.innerHTML = leaderboard.map((user, idx) => {
                 const pipelineFormatted = Number(user.pipeline || 0).toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2});
                 return `
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border-color);">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border-color); cursor: pointer;" 
+                     onclick="viewUserTasks('${user.name}', ${user.id})"
+                     onmouseover="this.style.background='var(--bg-light)'" 
+                     onmouseout="this.style.background='transparent'">
                     <div>
                         <div style="font-weight: 600;">${idx + 1}. ${user.name}</div>
                         <div style="font-size: 12px; color: var(--text-light);">${user.opportunities} opportunità</div>
@@ -6674,6 +6677,74 @@
                         }
                     }, 500);
                 }, 100);
+            }
+        }
+        
+        async function viewUserTasks(userName, userId) {
+            // Vai alla vista "Mie Attività" e carica le attività dell'utente selezionato
+            const navItem = document.querySelector(`[data-target="my-tasks-view"]`);
+            if (navItem) {
+                navItem.click();
+                
+                // Attendi che la vista sia caricata
+                setTimeout(async () => {
+                    try {
+                        // Carica le attività dell'utente specifico usando l'API
+                        const res = await fetch(`/api/tasks/user/${userId}`);
+                        if (!res.ok) {
+                            // Se l'endpoint non esiste, usa l'assistente per query
+                            console.log('Endpoint /api/tasks/user non disponibile, uso assistente');
+                            // Mostra messaggio che stiamo caricando
+                            const container = document.getElementById('my-tasks-container');
+                            if (container) {
+                                container.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-medium);">Caricamento attività di ' + userName + '...</div>';
+                            }
+                            
+                            // Usa l'assistente per query
+                            const assistantInput = document.getElementById('assistant-chat-input');
+                            if (assistantInput) {
+                                assistantInput.value = `mostrami le attività di ${userName}`;
+                                // Apri la chat se chiusa
+                                if (!assistantChatOpen) {
+                                    openAssistantChat();
+                                }
+                                setTimeout(() => {
+                                    sendAssistantMessage();
+                                }, 500);
+                            }
+                            return;
+                        }
+                        
+                        const data = await res.json();
+                        
+                        // Mostra le attività dell'utente
+                        allMyTasks = data.tasks || [];
+                        
+                        // Aggiungi header per indicare che stiamo vedendo le attività di un altro utente
+                        const container = document.getElementById('my-tasks-container');
+                        if (container && allMyTasks.length > 0) {
+                            const header = document.createElement('div');
+                            header.style.cssText = 'padding: 12px; background: #e0f2fe; border-left: 4px solid #3b82f6; border-radius: 4px; margin-bottom: 16px;';
+                            header.innerHTML = `<strong>📋 Attività di ${userName}</strong> (${allMyTasks.length} attività)`;
+                            container.insertBefore(header, container.firstChild);
+                        }
+                        
+                        renderMyTasks();
+                    } catch (err) {
+                        console.error('Errore caricamento attività utente:', err);
+                        // Fallback: usa l'assistente
+                        const assistantInput = document.getElementById('assistant-chat-input');
+                        if (assistantInput) {
+                            assistantInput.value = `mostrami le attività di ${userName}`;
+                            if (!assistantChatOpen) {
+                                openAssistantChat();
+                            }
+                            setTimeout(() => {
+                                sendAssistantMessage();
+                            }, 500);
+                        }
+                    }
+                }, 300);
             }
         }
 
