@@ -8683,6 +8683,54 @@
         }
         
         // Riepilogo Mattutino Attività
+        async function completeMorningTask(taskId, oppId) {
+            try {
+                let res;
+                // Converti oppId a numero se è una stringa
+                const oppIdNum = oppId === 'null' || oppId === null || oppId === 0 ? null : parseInt(oppId);
+                
+                if (oppIdNum && oppIdNum > 0) {
+                    res = await fetch(`/api/opportunities/${oppIdNum}/tasks/${taskId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ is_completed: true })
+                    });
+                } else {
+                    // Task globale senza opportunità
+                    res = await fetch(`/api/tasks/${taskId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ is_completed: true })
+                    });
+                }
+                const data = await res.json();
+                if (data.success) {
+                    // Ricarica il riepilogo mattutino
+                    await loadMorningTaskSummary();
+                    // Ricarica anche le mie attività se la vista è aperta
+                    if (document.getElementById('my-tasks-view').classList.contains('active')) {
+                        await loadMyTasks();
+                    }
+                } else {
+                    alert('Errore: ' + (data.error || 'Unknown'));
+                }
+            } catch (err) {
+                alert('Errore: ' + err.message);
+                console.error('Errore completeMorningTask:', err);
+            }
+        }
+        
+        function viewOpportunityFromMorningTask(oppId) {
+            // Cambia vista e carica opportunità
+            const navItem = document.querySelector(`[data-target="opportunities-view"]`);
+            if (navItem) {
+                navItem.click();
+                setTimeout(() => {
+                    viewOpportunityDetails(oppId);
+                }, 300);
+            }
+        }
+        
         async function loadMorningTaskSummary() {
             try {
                 const res = await fetch('/api/tasks/morning-summary');
@@ -8749,10 +8797,16 @@
                                         <p style="margin: 4px 0 0 0; font-size: 12px; color: var(--text-medium);">📅 ${dueDate}</p>
                                     </div>
                                 </div>
-                                <div style="margin-top: 12px;">
-                                    <button onclick="window.location.href='#opportunities-view'; viewOpportunityDetails(${task.opportunity_id || 0});" 
-                                            style="padding: 6px 12px; background: var(--primary); color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer;">
-                                        Vedi Opportunità
+                                <div style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
+                                    ${task.opportunity_id && task.opportunity_id !== 'null' && task.opportunity_id !== 0 ? `
+                                        <button onclick="viewOpportunityFromMorningTask(${task.opportunity_id});" 
+                                                style="padding: 6px 12px; background: var(--primary); color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer;">
+                                            Vedi Opportunità
+                                        </button>
+                                    ` : ''}
+                                    <button onclick="completeMorningTask(${task.id}, ${task.opportunity_id || 'null'});" 
+                                            style="padding: 6px 12px; background: var(--success); color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer;">
+                                        ✓ Segna Completata
                                     </button>
                                 </div>
                             </div>
@@ -9478,6 +9532,16 @@
             const quickDiv = document.getElementById('quick-suggestions');
             if (quickDiv) {
                 quickDiv.style.display = 'none';
+            }
+        }
+        
+        function useExampleSuggestion(example) {
+            const input = document.getElementById('assistant-chat-input');
+            if (input) {
+                input.value = example;
+                input.focus();
+                // Opzionalmente invia automaticamente
+                // sendAssistantMessage();
             }
         }
         

@@ -8460,7 +8460,10 @@ def assistant():
     pending_approvals = []  # Azioni che richiedono approvazione
 
     for action in actions:
-        action_type = (action.get('type') or '').strip()
+        action_type = (action.get('type') or action.get('action_type') or '').strip()
+        if not action_type:
+            # Salta azioni senza tipo (potrebbero essere metadati o formattazione)
+            continue
         if action_type == 'update_opportunity_stage':
             opp = resolve_opportunity(action)
             stage = normalize_stage(action.get('stage'))
@@ -8535,9 +8538,14 @@ def assistant():
             # Invia email alla persona assegnata
             try:
                 opp_name = opp.name if opp else (account.name if account else "Task globale")
+                print(f"📧 Tentativo invio email per task {task.id} assegnata a user_id {assigned_to_id}")
                 send_task_notification_email(task, opp_name, opp)
+                print(f"✅ Email inviata con successo per task {task.id}")
             except Exception as e:
-                print(f"Errore invio email task (assistente): {str(e)}")
+                import traceback
+                error_trace = traceback.format_exc()
+                print(f"❌ Errore invio email task (assistente): {str(e)}")
+                print(f"Traceback: {error_trace}")
                 # Non bloccare se l'email fallisce
             
             results.append({
