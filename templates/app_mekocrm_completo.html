@@ -8922,10 +8922,20 @@
                     if (navItem) {
                         navItem.click();
                         setTimeout(() => {
-                            loadContacts();
+                            // Se esiste loadContacts, chiamalo, altrimenti ricarica la vista
+                            if (typeof loadContacts === 'function') {
+                                loadContacts();
+                            } else {
+                                // Ricarica la vista contatti
+                                const contactsView = document.getElementById('contacts-view');
+                                if (contactsView) {
+                                    location.reload();
+                                }
+                            }
                             // Evidenzia il contatto
                             setTimeout(() => {
-                                const row = document.querySelector(`[data-contact-id="${id}"]`);
+                                const row = document.querySelector(`[data-contact-id="${id}"]`) || 
+                                           document.querySelector(`tr[data-contact-id="${id}"]`);
                                 if (row) {
                                     row.scrollIntoView({ behavior: 'smooth', block: 'center' });
                                     row.style.background = '#fef3c7';
@@ -8939,10 +8949,11 @@
                     if (navItem) {
                         navItem.click();
                         setTimeout(() => {
-                            loadLeads();
+                            loadLeads(currentLeadsPage || 1);
                             // Evidenzia il lead
                             setTimeout(() => {
-                                const row = document.querySelector(`[data-lead-id="${id}"]`);
+                                const row = document.querySelector(`[data-lead-id="${id}"]`) ||
+                                           document.querySelector(`tr[data-lead-id="${id}"]`);
                                 if (row) {
                                     row.scrollIntoView({ behavior: 'smooth', block: 'center' });
                                     row.style.background = '#fef3c7';
