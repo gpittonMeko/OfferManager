@@ -8245,9 +8245,10 @@ def assistant():
         "and opportunity_id/opportunity_name or account_id/account_name. "
         "For query_data: provide query_type (top_opportunities, opportunities_by_category, opportunities_by_date, "
         "highest_value_opportunity, opportunities_by_heat_level, account_opportunities, pipeline_opportunities, "
-        "contact_phone, account_phone, phone_by_entity) and optional filters like "
-        "category (UR, MiR, Unitree, Altri), heat_level, limit (number), month (YYYY-MM), account_name, contact_name, phone_number. "
+        "pipeline_trend, contact_phone, account_phone, phone_by_entity) and optional filters like "
+        "category (UR, MiR, Unitree, Altri), heat_level, limit (number), month (YYYY-MM), account_name, contact_name, phone_number, months (number). "
         "pipeline_opportunities returns all active opportunities (not Closed Won/Lost). "
+        "pipeline_trend returns aggregated pipeline value by month and category for the last N months (default 6). "
         "contact_phone: search phone by contact name. account_phone: search phone by account name. "
         "phone_by_entity: find which account/contact/lead has a specific phone number. "
         "For update_data: provide update_type (opportunity, account, task), entity_id or entity_name, "
@@ -8849,6 +8850,61 @@ def assistant():
                                 'industry': row[4] or 'N/A'
                             })
                 
+                elif query_type == 'pipeline_trend':
+                    # Dati aggregati per grafico pipeline (per mese e categoria)
+                    months_back = action.get('months', 6)
+                    try:
+                        months_back = int(months_back) if months_back else 6
+                    except:
+                        months_back = 6
+                    
+                    from datetime import datetime, timedelta
+                    end_date = datetime.utcnow()
+                    start_date = end_date - timedelta(days=months_back * 30)
+                    
+                    query = text("""
+                        SELECT 
+                            strftime('%Y-%m', o.created_at) as month,
+                            o.supplier_category as category,
+                            SUM(COALESCE(o.amount, 0)) as total_value,
+                            COUNT(*) as count
+                        FROM opportunities o
+                        WHERE o.stage NOT IN ('Closed Won', 'Closed Lost')
+                          AND o.created_at >= :start_date
+                          AND o.created_at <= :end_date
+                        GROUP BY month, category
+                        ORDER BY month ASC, category ASC
+                    """)
+                    query_results_raw = db.session.execute(query, {
+                        'start_date': start_date,
+                        'end_date': end_date
+                    }).fetchall()
+                    
+                    # Organizza per mese e categoria
+                    trend_data = {}
+                    for row in query_results_raw:
+                        month = row[0]
+                        category = row[1] or 'Altri'
+                        value = float(row[2] or 0)
+                        count = row[3] or 0
+                        
+                        if month not in trend_data:
+                            trend_data[month] = {}
+                        trend_data[month][category] = {
+                            'value': value,
+                            'count': count
+                        }
+                    
+                    # Converti in formato lista per la risposta
+                    for month, categories in trend_data.items():
+                        for category, data in categories.items():
+                            query_results.append({
+                                'month': month,
+                                'category': category,
+                                'value': data['value'],
+                                'count': data['count']
+                            })
+                
                 elif query_type == 'phone_by_entity':
                     # Cerca quale account/contact/lead ha un numero di telefono specifico
                     phone_number = action.get('phone_number', '').strip()
@@ -8908,12 +8964,16 @@ def assistant():
                             })
                 
                 if query_results:
-                    results.append({
+                    result_item = {
                         'type': action_type,
                         'query_type': query_type,
                         'results': query_results,
                         'count': len(query_results)
-                    })
+                    }
+                    # Aggiungi parametri per formattazione
+                    if query_type == 'pipeline_trend':
+                        result_item['query_params'] = {'months': months_back}
+                    results.append(result_item)
                 else:
                     errors.append({'type': action_type, 'error': f'Nessun risultato trovato per query_type: {query_type}'})
             except Exception as e:
@@ -9114,6 +9174,40 @@ def assistant():
                     if account['industry'] and account['industry'] != 'N/A':
                         formatted_reply += f"   🏭 Settore: {account['industry']}\n"
                     formatted_reply += "\n"
+            
+            elif query_type == 'pipeline_trend':
+                # Formatta dati per grafico pipeline
+                if query_results:
+                    # Raggruppa per mese
+                    by_month = {}
+                    for item in query_results:
+                        month = item['month']
+                        if month not in by_month:
+                            by_month[month] = {}
+                        by_month[month][item['category']] = item['value']
+                    
+                    # Trova il numero di mesi dal result_item
+                    months_param = 6
+                    if isinstance(result_item, dict) and 'query_params' in result_item:
+                        months_param = result_item['query_params'].get('months', 6)
+                    
+                    formatted_reply += f"\n\n📊 Andamento Pipeline (Ultimi {months_param} mesi):\n\n"
+                    
+                    # Mostra per mese
+                    for month in sorted(by_month.keys()):
+                        month_data = by_month[month]
+                        formatted_reply += f"📅 {month}:\n"
+                        total_month = 0
+                        for category in ['UR', 'MiR', 'Unitree', 'Altri']:
+                            value = month_data.get(category, 0)
+                            if value > 0:
+                                formatted_reply += f"   • {category}: €{value:,.2f}\n"
+                                total_month += value
+                        if total_month > 0:
+                            formatted_reply += f"   💰 Totale: €{total_month:,.2f}\n"
+                        formatted_reply += "\n"
+                else:
+                    formatted_reply += "\n\n📊 Nessun dato disponibile per il periodo richiesto.\n"
             
             elif query_type == 'phone_by_entity':
                 formatted_reply += f"\n\n📞 Entità con questo numero ({len(query_results)}):\n\n"
