@@ -8605,7 +8605,7 @@ def assistant():
                             'heat_level': row[4],
                             'category': row[5],
                             'account_name': row[6],
-                            'created_at': row[7].isoformat() if row[7] else None
+                            'created_at': row[7].isoformat() if row[7] and hasattr(row[7], 'isoformat') else (str(row[7]) if row[7] else None)
                         })
                 
                 elif query_type == 'opportunities_by_category':
@@ -8631,7 +8631,7 @@ def assistant():
                                 'heat_level': row[4],
                                 'category': row[5],
                                 'account_name': row[6],
-                                'created_at': row[7].isoformat() if row[7] else None
+                                'created_at': row[7].isoformat() if row[7] and hasattr(row[7], 'isoformat') else (str(row[7]) if row[7] else None)
                             })
                 
                 elif query_type == 'opportunities_by_date':
@@ -8674,7 +8674,7 @@ def assistant():
                                 'heat_level': row[4],
                                 'category': row[5],
                                 'account_name': row[6],
-                                'created_at': row[7].isoformat() if row[7] else None
+                                'created_at': row[7].isoformat() if row[7] and hasattr(row[7], 'isoformat') else (str(row[7]) if row[7] else None)
                             })
             
                 elif query_type == 'highest_value_opportunity':
@@ -8723,7 +8723,7 @@ def assistant():
                                 'heat_level': row[4],
                                 'category': row[5],
                                 'account_name': row[6],
-                                'created_at': row[7].isoformat() if row[7] else None
+                                'created_at': row[7].isoformat() if row[7] and hasattr(row[7], 'isoformat') else (str(row[7]) if row[7] else None)
                             })
                 
                 elif query_type == 'account_opportunities':
@@ -8749,7 +8749,7 @@ def assistant():
                                 'heat_level': row[4],
                                 'category': row[5],
                                 'account_name': row[6],
-                                'created_at': row[7].isoformat() if row[7] else None
+                                'created_at': row[7].isoformat() if row[7] and hasattr(row[7], 'isoformat') else (str(row[7]) if row[7] else None)
                             })
             
                 elif query_type == 'pipeline_opportunities':
@@ -8773,7 +8773,7 @@ def assistant():
                             'heat_level': row[4],
                             'category': row[5],
                             'account_name': row[6],
-                            'created_at': row[7].isoformat() if row[7] else None
+                            'created_at': row[7].isoformat() if row[7] and hasattr(row[7], 'isoformat') else (str(row[7]) if row[7] else None)
                         })
                 
                 if query_results:
