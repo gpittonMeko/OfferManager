@@ -1801,11 +1801,11 @@ def map_data():
                 # Determina categoria dalla prima opportunità (se presente)
                 category = None
                 first_opp = Opportunity.query.filter_by(account_id=a.id).first()
-                if first_opp and first_opp.category:
-                    category_lower = first_opp.category.lower()
+                if first_opp and first_opp.supplier_category:
+                    category_lower = first_opp.supplier_category.lower()
                     if 'mir' in category_lower:
                         category = 'MiR'
-                    elif 'ur' in category_lower:
+                    elif 'ur' in category_lower or 'universal' in category_lower:
                         category = 'UR'
                     elif 'unitree' in category_lower:
                         category = 'Unitree'
@@ -8163,6 +8163,210 @@ def geocode_proxy():
         return jsonify(data)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/assistant', methods=['POST'])
+def assistant():
+    """Natural-language assistant for CRM actions."""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Non autorizzato'}), 401
+
+    data = request.json or {}
+    user_message = (data.get('message') or '').strip()
+    if not user_message:
+        return jsonify({'error': 'Messaggio vuoto'}), 400
+
+    api_key = os.environ.get('OPENAI_API_KEY') or os.environ.get('OPENAI_KEY')
+    if not api_key:
+        return jsonify({'error': 'OPENAI_API_KEY non configurata'}), 500
+
+    model = os.environ.get('OPENAI_MODEL', 'gpt-4o-mini')
+
+    system_prompt = (
+        "You are a CRM assistant. Reply ONLY in JSON with keys: reply (string), actions (array). "
+        "Allowed action types: update_opportunity_stage, update_opportunity_category, create_task. "
+        "For update actions provide opportunity_id or opportunity_name, and stage/category. "
+        "For create_task provide task_type (send_offer, call, recall, other), description, "
+        "optional due_date (YYYY-MM-DD), and opportunity_id/opportunity_name or account_id/account_name. "
+        "Use standard stage values: Qualification, Needs Analysis, Value Proposition, Id. Decision Makers, "
+        "Perception Analysis, Proposal/Price Quote, Negotiation/Review, Closed Won, Closed Lost."
+    )
+
+    try:
+        import requests
+
+        payload = {
+            "model": model,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_message}
+            ],
+            "temperature": 0.2,
+            "response_format": {"type": "json_object"}
+        }
+        response = requests.post(
+            "https://api.openai.com/v1/chat/completions",
+            headers={"Authorization": f"Bearer {api_key}"},
+            json=payload,
+            timeout=25
+        )
+        response.raise_for_status()
+        result = response.json()
+        content = result.get('choices', [{}])[0].get('message', {}).get('content', '')
+    except Exception as e:
+        return jsonify({'error': f'Errore chiamata AI: {str(e)}'}), 500
+
+    def parse_json(text_value):
+        try:
+            return json.loads(text_value)
+        except Exception:
+            try:
+                start = text_value.find('{')
+                end = text_value.rfind('}')
+                if start != -1 and end != -1 and end > start:
+                    return json.loads(text_value[start:end + 1])
+            except Exception:
+                return None
+        return None
+
+    parsed = parse_json(content)
+    if not parsed:
+        return jsonify({'error': 'Risposta AI non valida'}), 500
+
+    reply = parsed.get('reply') or ''
+    actions = parsed.get('actions') or []
+
+    def normalize_stage(value):
+        if not value:
+            return None
+        normalized = value.strip().lower()
+        mapping = {
+            'chiusa vinta': 'Closed Won',
+            'vinta': 'Closed Won',
+            'chiusa persa': 'Closed Lost',
+            'persa': 'Closed Lost',
+            'qualificazione': 'Qualification',
+            'analisi necessita': 'Needs Analysis',
+            'analisi necessit?': 'Needs Analysis',
+            'proposta di valore': 'Value Proposition',
+            'identificazione decision maker': 'Id. Decision Makers',
+            'analisi percezione': 'Perception Analysis',
+            'offerta': 'Proposal/Price Quote',
+            'preventivo': 'Proposal/Price Quote',
+            'negoziazione': 'Negotiation/Review'
+        }
+        return mapping.get(normalized, value)
+
+    def normalize_task_type(value):
+        if not value:
+            return 'other'
+        normalized = value.strip().lower()
+        if normalized in ['call', 'chiamata', 'chiama']:
+            return 'call'
+        if normalized in ['recall', 'richiama']:
+            return 'recall'
+        if normalized in ['send_offer', 'invia offerta', 'offerta']:
+            return 'send_offer'
+        return 'other'
+
+    def parse_date(value):
+        if not value:
+            return None
+        try:
+            return datetime.fromisoformat(value).date()
+        except Exception:
+            return None
+
+    def resolve_opportunity(action):
+        opp_id = action.get('opportunity_id')
+        if opp_id:
+            return Opportunity.query.get(opp_id)
+        name = (action.get('opportunity_name') or '').strip()
+        if not name:
+            return None
+        matches = Opportunity.query.filter(Opportunity.name.ilike(f"%{name}%")).all()
+        if len(matches) == 1:
+            return matches[0]
+        return None
+
+    def resolve_account(action):
+        account_id = action.get('account_id')
+        if account_id:
+            return Account.query.get(account_id)
+        name = (action.get('account_name') or '').strip()
+        if not name:
+            return None
+        matches = Account.query.filter(Account.name.ilike(f"%{name}%")).all()
+        if len(matches) == 1:
+            return matches[0]
+        return None
+
+    results = []
+    errors = []
+
+    for action in actions:
+        action_type = (action.get('type') or '').strip()
+        if action_type == 'update_opportunity_stage':
+            opp = resolve_opportunity(action)
+            stage = normalize_stage(action.get('stage'))
+            if not opp:
+                errors.append({'type': action_type, 'error': 'Opportunita non trovata'})
+                continue
+            if not stage:
+                errors.append({'type': action_type, 'error': 'Stage mancante'})
+                continue
+            opp.stage = stage
+            opp.updated_at = datetime.utcnow()
+            db.session.commit()
+            results.append({'type': action_type, 'opportunity_id': opp.id, 'stage': stage})
+        elif action_type == 'update_opportunity_category':
+            opp = resolve_opportunity(action)
+            category = (action.get('category') or '').strip()
+            if not opp:
+                errors.append({'type': action_type, 'error': 'Opportunita non trovata'})
+                continue
+            if not category:
+                errors.append({'type': action_type, 'error': 'Categoria mancante'})
+                continue
+            opp.supplier_category = category
+            opp.updated_at = datetime.utcnow()
+            db.session.commit()
+            results.append({'type': action_type, 'opportunity_id': opp.id, 'category': category})
+        elif action_type == 'create_task':
+            task_type = normalize_task_type(action.get('task_type'))
+            description = (action.get('description') or '').strip()
+            due_date = parse_date(action.get('due_date'))
+            opp = resolve_opportunity(action)
+            account = resolve_account(action)
+            if not description:
+                errors.append({'type': action_type, 'error': 'Descrizione mancante'})
+                continue
+            task = OpportunityTask(
+                opportunity_id=opp.id if opp else None,
+                account_id=account.id if account else None,
+                task_type=task_type,
+                description=description,
+                assigned_to_id=session['user_id'],
+                due_date=due_date
+            )
+            db.session.add(task)
+            db.session.commit()
+            results.append({
+                'type': action_type,
+                'task_id': task.id,
+                'task_type': task.task_type,
+                'opportunity_id': task.opportunity_id,
+                'account_id': task.account_id
+            })
+        else:
+            errors.append({'type': action_type or 'unknown', 'error': 'Tipo azione non supportato'})
+
+    return jsonify({
+        'reply': reply,
+        'actions': results,
+        'errors': errors
+    })
+
 
 @app.route('/api/users/all', methods=['GET'])
 def get_all_users():

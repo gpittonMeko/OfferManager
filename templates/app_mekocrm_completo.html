@@ -1564,7 +1564,55 @@
             width: 100%;
             max-width: 400px;
         }
-    </style>
+    
+        .assistant-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            height: 100%;
+        }
+        .assistant-messages {
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            min-height: 320px;
+            max-height: 520px;
+            overflow-y: auto;
+            background: var(--bg-light);
+        }
+        .assistant-message {
+            padding: 10px 12px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            line-height: 1.4;
+            max-width: 85%;
+        }
+        .assistant-message.user {
+            background: var(--primary);
+            color: white;
+            margin-left: auto;
+        }
+        .assistant-message.bot {
+            background: white;
+            border: 1px solid var(--border-color);
+            color: var(--text-dark);
+        }
+        .assistant-input-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 12px;
+        }
+        .assistant-input-row textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        .assistant-actions {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+</style>
 </head>
 <body>
     <!-- Hamburger Menu Toggle -->
@@ -1600,6 +1648,7 @@
         <nav class="nav-menu">
             <div class="nav-item active" data-target="dashboard-view">Dashboard</div>
             <div class="nav-item" data-target="my-tasks-view">📋 Mie Attività</div>
+            <div class="nav-item" data-target="assistant-view">🤖 Assistant</div>
             <div class="nav-item" data-target="leads-view">Leads</div>
             <div class="nav-item" data-target="accounts-view">Accounts</div>
             <div class="nav-item" data-target="map-view">🗺️ Mappa Contatti</div>
@@ -1933,6 +1982,9 @@
                     <p style="color: var(--text-light);">Visualizzazione geografica di account e leads</p>
                 </div>
                 <div class="hero-actions">
+                    <input type="text" id="map-search" placeholder="🔍 Cerca cliente per nome..." 
+                           style="padding: 10px 16px; border: 2px solid var(--border-color); border-radius: 8px; font-size: 14px; min-width: 300px; margin-right: 12px;"
+                           onkeyup="searchOnMap(this.value)">
                     <button class="button" onclick="loadMapData()">🔄 Aggiorna Mappa</button>
                 </div>
             </div>
@@ -1977,6 +2029,34 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </section>
+
+        <!-- Assistant View -->
+        <section id="assistant-view" class="view">
+            <div class="hero">
+                <div>
+                    <h2>🤖 Assistant</h2>
+                    <p style="color: var(--text-light);">Modifica opportunità e crea attività usando il linguaggio naturale</p>
+                </div>
+            </div>
+            
+            <div class="card assistant-container">
+                <div id="assistant-messages" class="assistant-messages">
+                    <div class="assistant-message bot">
+                        Ciao! Sono il tuo assistente CRM. Puoi chiedermi di:
+                        <ul style="margin: 8px 0; padding-left: 20px;">
+                            <li>Cambiare lo stato di un'opportunità (es: "Metti Eurovo in Negoziazione")</li>
+                            <li>Creare attività (es: "Crea un'attività per chiamare Eurofresi")</li>
+                            <li>Aggiornare categorie (es: "Metti Multimac in categoria UR")</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="assistant-input-row">
+                    <textarea id="assistant-input" placeholder="Scrivi qui il tuo comando... (es: 'Metti Eurovo in Negoziazione')" style="padding: 12px; border: 2px solid var(--border-color); border-radius: 8px; font-size: 14px; font-family: inherit; resize: vertical;"></textarea>
+                    <button id="assistant-send" class="button" style="height: fit-content; padding: 12px 24px;">Invia</button>
+                </div>
+                <div class="assistant-actions" id="assistant-actions"></div>
             </div>
         </section>
 
@@ -3376,13 +3456,26 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ stage: stage })
                 });
+                
+                if (!res.ok) {
+                    const errorData = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+                    throw new Error(errorData.error || `HTTP ${res.status}`);
+                }
+                
                 const data = await res.json();
                 if (data.success) {
-                    loadOpportunities(currentOpportunitiesPage);
+                    // Aggiorna localmente per feedback immediato
+                    const opp = allOpportunities.find(o => o.id === oppId);
+                    if (opp) {
+                        opp.stage = stage;
+                    }
+                    renderOpportunities();
+                    loadDashboard(); // Ricarica dashboard per aggiornare grafici
                 } else {
-                    alert('Errore: ' + (data.error || 'Unknown'));
+                    throw new Error(data.error || 'Errore sconosciuto');
                 }
             } catch (err) {
+                console.error('Errore aggiornamento stage:', err);
                 alert('Errore: ' + err.message);
             }
         }
@@ -8613,7 +8706,184 @@
                 });
             });
         });
-    </script>
+    
+        let assistantBusy = false;
+
+        function appendAssistantMessage(role, text) {
+            const container = document.getElementById('assistant-messages');
+            if (!container) return;
+            const message = document.createElement('div');
+            message.className = `assistant-message ${role}`;
+            message.textContent = text;
+            container.appendChild(message);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        async function sendAssistantMessage() {
+            const input = document.getElementById('assistant-input');
+            const actionsDiv = document.getElementById('assistant-actions');
+            if (!input || assistantBusy) return;
+            const message = input.value.trim();
+            if (!message) return;
+            assistantBusy = true;
+            appendAssistantMessage('user', message);
+            input.value = '';
+            if (actionsDiv) actionsDiv.innerHTML = '';
+
+            try {
+                const res = await fetch('/api/assistant', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message })
+                });
+                
+                if (!res.ok) {
+                    const errorData = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+                    appendAssistantMessage('bot', '❌ Errore: ' + (errorData.error || 'Errore durante la richiesta.'));
+                    return;
+                }
+                
+                const data = await res.json();
+                const reply = data.reply || 'Operazione completata.';
+                appendAssistantMessage('bot', reply);
+                
+                // Mostra azioni eseguite
+                if (data.actions && data.actions.length > 0 && actionsDiv) {
+                    let actionsHtml = '<div style="margin-top: 12px; padding: 12px; background: #f0f9ff; border-radius: 8px; border-left: 4px solid #3b82f6;"><strong style="font-size: 12px; color: #1e40af;">✅ Azioni eseguite:</strong><ul style="margin: 8px 0 0 0; padding-left: 20px; font-size: 12px;">';
+                    data.actions.forEach(action => {
+                        if (action.type === 'update_opportunity_stage') {
+                            actionsHtml += `<li>Stato opportunità ${action.opportunity_id} aggiornato a: ${action.stage}</li>`;
+                        } else if (action.type === 'update_opportunity_category') {
+                            actionsHtml += `<li>Categoria opportunità ${action.opportunity_id} aggiornata a: ${action.category}</li>`;
+                        } else if (action.type === 'create_task') {
+                            actionsHtml += `<li>Attività creata (ID: ${action.task_id}, Tipo: ${action.task_type})</li>`;
+                        }
+                    });
+                    actionsHtml += '</ul></div>';
+                    actionsDiv.innerHTML = actionsHtml;
+                }
+                
+                // Mostra errori se presenti
+                if (data.errors && data.errors.length > 0 && actionsDiv) {
+                    let errorsHtml = '<div style="margin-top: 8px; padding: 12px; background: #fef2f2; border-radius: 8px; border-left: 4px solid #ef4444;"><strong style="font-size: 12px; color: #991b1b;">⚠️ Errori:</strong><ul style="margin: 8px 0 0 0; padding-left: 20px; font-size: 12px;">';
+                    data.errors.forEach(error => {
+                        errorsHtml += `<li>${error.type}: ${error.error}</li>`;
+                    });
+                    errorsHtml += '</ul></div>';
+                    actionsDiv.innerHTML = (actionsDiv.innerHTML || '') + errorsHtml;
+                }
+                
+                // Ricarica dati se ci sono state modifiche
+                if (data.actions && data.actions.length > 0) {
+                    loadOpportunities(currentOpportunitiesPage);
+                    loadLeads(currentLeadsPage);
+                    loadAccounts(currentAccountsPage);
+                    loadMyTasks();
+                    loadDashboard();
+                }
+            } catch (err) {
+                console.error('Errore assistente:', err);
+                appendAssistantMessage('bot', '❌ Errore: ' + err.message);
+            } finally {
+                assistantBusy = false;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const sendBtn = document.getElementById('assistant-send');
+            const input = document.getElementById('assistant-input');
+            if (sendBtn) sendBtn.addEventListener('click', sendAssistantMessage);
+            if (input) {
+                input.addEventListener('keydown', (event) => {
+                    if (event.key === 'Enter' && !event.shiftKey) {
+                        event.preventDefault();
+                        sendAssistantMessage();
+                    }
+                });
+            }
+        });
+
+        // Funzione ricerca nella mappa
+        let mapSearchTimeout = null;
+        async function searchOnMap(searchTerm) {
+            if (!map || typeof L === 'undefined') {
+                alert('La mappa non è ancora caricata. Attendi il caricamento completo.');
+                return;
+            }
+            
+            clearTimeout(mapSearchTimeout);
+            mapSearchTimeout = setTimeout(async () => {
+                if (!searchTerm || searchTerm.trim().length < 2) {
+                    return;
+                }
+                
+                try {
+                    // Cerca sia account che leads
+                    const [accountsRes, leadsRes] = await Promise.all([
+                        fetch(`/api/accounts/search-all?q=${encodeURIComponent(searchTerm)}&page=1&per_page=10`),
+                        fetch(`/api/leads/search-all?q=${encodeURIComponent(searchTerm)}&page=1&per_page=10`)
+                    ]);
+                    
+                    const accountsData = await accountsRes.json();
+                    const leadsData = await leadsRes.json();
+                    
+                    const accounts = accountsData.accounts || [];
+                    const leads = leadsData.leads || [];
+                    
+                    // Cerca marker esistenti che corrispondono
+                    let foundMarker = null;
+                    const allResults = [...accounts, ...leads];
+                    
+                    for (const result of allResults) {
+                        // Cerca marker per ID
+                        const marker = markers.find(m => {
+                            const markerData = m.options.markerData;
+                            if (!markerData) return false;
+                            if (markerData.type === 'account' && markerData.id === result.id) return true;
+                            if (markerData.type === 'lead' && markerData.id === result.id) return true;
+                            return false;
+                        });
+                        
+                        if (marker) {
+                            foundMarker = marker;
+                            break;
+                        }
+                    }
+                    
+                    if (foundMarker) {
+                        // Centra mappa sul marker trovato
+                        const latlng = foundMarker.getLatLng();
+                        map.setView(latlng, Math.max(map.getZoom(), 13));
+                        foundMarker.openPopup();
+                    } else if (allResults.length > 0) {
+                        // Se non trovato nei marker, prova a geocodificare l'indirizzo del primo risultato
+                        const firstResult = allResults[0];
+                        const address = firstResult.billing_address || firstResult.address || '';
+                        if (address) {
+                            await geocodeAddress(address, firstResult.name, firstResult.id ? 'account' : 'lead', firstResult.id, false, 0, null, 0);
+                            // Attendi un po' e poi centra
+                            setTimeout(() => {
+                                const newMarker = markers[markers.length - 1];
+                                if (newMarker) {
+                                    const latlng = newMarker.getLatLng();
+                                    map.setView(latlng, Math.max(map.getZoom(), 13));
+                                    newMarker.openPopup();
+                                }
+                            }, 500);
+                        } else {
+                            alert(`Cliente "${firstResult.name}" trovato ma senza indirizzo valido per la mappa.`);
+                        }
+                    } else {
+                        alert(`Nessun cliente trovato per "${searchTerm}"`);
+                    }
+                } catch (err) {
+                    console.error('Errore ricerca mappa:', err);
+                    alert('Errore durante la ricerca: ' + err.message);
+                }
+            }, 500);
+        }
+
+</script>
 </body>
 </html>
 
