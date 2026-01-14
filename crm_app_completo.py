@@ -3016,14 +3016,20 @@ def get_my_tasks():
             'account_id': account_id,
             'account_name': account_name,
             'account_image_url': account_image_url,
-            'opportunity_offers': [{'id': o.id, 'number': o.number, 'pdf_path': o.pdf_path, 'docx_path': o.docx_path, 'amount': (o.amount if o.amount and o.amount > 0 else extract_offer_amount(o))} for o in t.opportunity.offers] if t.opportunity and t.opportunity.offers else []
+            'opportunity_offers': [{'id': o.id, 'number': o.number, 'pdf_path': o.pdf_path, 'docx_path': o.docx_path, 'amount': (o.amount if o.amount and o.amount > 0 else 0)} for o in t.opportunity.offers] if t.opportunity and t.opportunity.offers else []
         }
     
-    return jsonify({
-        'global_tasks': [task_to_dict(t) for t in global_tasks],
-        'opportunity_tasks': [task_to_dict(t) for t in opp_tasks],
-        'total': len(global_tasks) + len(opp_tasks)
-    })
+    try:
+        return jsonify({
+            'global_tasks': [task_to_dict(t) for t in global_tasks],
+            'opportunity_tasks': [task_to_dict(t) for t in opp_tasks],
+            'total': len(global_tasks) + len(opp_tasks)
+        })
+    except Exception as e:
+        import traceback
+        print(f"Errore in get_my_tasks: {e}")
+        print(traceback.format_exc())
+        return jsonify({'error': str(e), 'global_tasks': [], 'opportunity_tasks': [], 'total': 0}), 500
 
 
 @app.route('/api/tasks', methods=['POST'])
@@ -8245,8 +8251,9 @@ def assistant():
         "and opportunity_id/opportunity_name or account_id/account_name. "
         "For query_data: provide query_type (top_opportunities, opportunities_by_category, opportunities_by_date, "
         "highest_value_opportunity, opportunities_by_heat_level, account_opportunities, pipeline_opportunities, "
-        "pipeline_trend, contact_phone, account_phone, phone_by_entity) and optional filters like "
-        "category (UR, MiR, Unitree, Altri), heat_level, limit (number), month (YYYY-MM), account_name, contact_name, phone_number, months (number). "
+        "pipeline_trend, contact_phone, account_phone, phone_by_entity, user_tasks) and optional filters like "
+        "category (UR, MiR, Unitree, Altri), heat_level, limit (number), month (YYYY-MM), account_name, contact_name, phone_number, months (number), user_name or user_id. "
+        "user_tasks: get all tasks assigned to a specific user (provide user_name like 'giovanni', 'mauro', etc. or user_id). "
         "pipeline_opportunities returns all active opportunities (not Closed Won/Lost). "
         "pipeline_trend returns aggregated pipeline value by month and category for the last N months (default 6). "
         "contact_phone: search phone by contact name. account_phone: search phone by account name. "
