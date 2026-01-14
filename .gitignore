@@ -46,9 +46,9 @@ build/
 dist/
 *.egg-info/
 
-# Generated files (opzionale - decommentare se non vuoi committare)
-# offerte_generate/
-# listini/*.pdf
+# Generated files (non committare offerte generate - contengono dati dinamici)
+offerte_generate/
+# listini/ - I listini PDF/XLSX sono file statici, possono essere committati se necessario
 
 # OneDrive sync files
 ~$*
