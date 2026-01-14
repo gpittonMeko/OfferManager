@@ -3,38 +3,40 @@
 """Aggiunge colonna heat_level alla tabella opportunities"""
 import sys
 import os
-sys.path.insert(0, '/home/ubuntu/offermanager')
+from pathlib import Path
+
+# Aggiungi la root del progetto al path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
 
 from crm_app_completo import db, Opportunity, app
 import sqlite3
 
 with app.app_context():
     try:
-        # Prova prima con crm.db (database attivo)
-        db_files = ['crm.db', 'mekocrm.db']
-        db_file = None
+        # Flask cerca il database in instance/ quando si usa sqlite:///mekocrm.db
+        base_dir = Path(__file__).parent.parent
+        instance_dir = base_dir / 'instance'
+        db_file = instance_dir / 'mekocrm.db'
         
-        for dbf in db_files:
-            if os.path.exists(dbf):
-                conn_test = sqlite3.connect(dbf)
-                cursor_test = conn_test.cursor()
-                try:
-                    cursor_test.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='opportunities'")
-                    if cursor_test.fetchone():
-                        db_file = dbf
-                        conn_test.close()
-                        break
-                except:
-                    pass
-                conn_test.close()
+        # Se non esiste in instance/, prova nella root
+        if not db_file.exists():
+            db_file = base_dir / 'mekocrm.db'
         
-        if not db_file:
-            print("❌ Nessun database con tabella opportunities trovato")
+        # Se ancora non esiste, prova crm.db
+        if not db_file.exists():
+            db_file = base_dir / 'crm.db'
+        
+        # Se non esiste, crea le tabelle
+        if not db_file.exists():
+            print("❌ Nessun database trovato")
             print("✅ Creazione tabelle con SQLAlchemy...")
             db.create_all()
-            db_file = 'mekocrm.db'
-            if not os.path.exists(db_file):
-                db_file = 'crm.db'
+            db_file = instance_dir / 'mekocrm.db'
+            if not db_file.exists():
+                db_file = base_dir / 'mekocrm.db'
+        
+        db_file = str(db_file)
         
         print(f"📁 Database: {db_file}")
         

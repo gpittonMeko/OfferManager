@@ -1071,7 +1071,7 @@ def dashboard_summary():
                 probability = 0
             else:
                 # Default per da_categorizzare o valori non riconosciuti
-                probability = 10
+                probability = 0
             pipeline += opp_value * (probability / 100.0)
     
     # Calcola chiusi includendo valori offerte
@@ -1984,11 +1984,11 @@ def opportunities():
         """), params).fetchone()
         total = count_result[0] if count_result else 0
         
-        # Carica opportunità
+        # Carica opportunità (include heat_level)
         opps_result = db.session.execute(text(f"""
             SELECT id, name, stage, amount, probability, close_date, opportunity_type, 
                    description, supplier_category, folder_path, lost_reason, owner_id, 
-                   account_id, contact_id, lead_id, created_at, updated_at
+                   account_id, contact_id, lead_id, created_at, updated_at, heat_level
             FROM opportunities 
             {where_sql}
             {order_by}
@@ -2023,7 +2023,8 @@ def opportunities():
                 opp.updated_at = datetime.fromisoformat(row[16].replace('Z', '+00:00')) if row[16] else None
             else:
                 opp.updated_at = row[16]
-            opp.heat_level = None
+            # Carica heat_level (colonna 17)
+            opp.heat_level = row[17] if len(row) > 17 else 'da_categorizzare'
             # Carica relazioni
             opp.offers = db.session.query(OfferDocument).filter_by(opportunity_id=opp.id).all()
             opp.account = db.session.query(Account).filter_by(id=opp.account_id).first() if opp.account_id else None
@@ -2059,7 +2060,7 @@ def opportunities():
                 'opportunity_type': o.opportunity_type,
                 'description': o.description,
                 'supplier_category': o.supplier_category,
-                'heat_level': o.heat_level or 'tiepida',
+                'heat_level': o.heat_level or 'da_categorizzare',
                 'lost_reason': o.lost_reason,
                 'account_id': o.account_id,
                 'account_name': o.account.name if o.account else None,
@@ -2167,7 +2168,7 @@ def get_or_update_opportunity(opportunity_id):
                 'opportunity_type': opp.opportunity_type,
                 'description': opp.description,
                 'supplier_category': opp.supplier_category,
-                'heat_level': opp.heat_level or 'tiepida',
+                'heat_level': opp.heat_level or 'da_categorizzare',
                 'lost_reason': opp.lost_reason,
                 'account_id': opp.account_id,
                 'account_name': opp.account.name if opp.account else None,
@@ -5712,7 +5713,7 @@ def pipeline_analytics():
                 probability = 0
             else:
                 # Default per da_categorizzare o valori non riconosciuti
-                probability = 10
+                probability = 0
             
             weighted_value = opp_value * (probability / 100.0)
             

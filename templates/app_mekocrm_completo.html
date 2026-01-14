@@ -3296,7 +3296,7 @@
                             'tiepida': '🟡 Tiepide (15%)',
                             'fredda_speranza': '🔵 Fredde con Speranza (5%)',
                             'fredda_gelo': '⚪ Fredde Gelo (0%)',
-                            'da_categorizzare': '⚫ Da Categorizzare (10%)'
+                            'da_categorizzare': '⚫ Da Categorizzare (0%)'
                         };
                         
                         let html = '<div style="padding: 16px; background: var(--bg-light); border-radius: 8px; margin-top: 16px;"><h3 style="margin-bottom: 12px; font-size: 14px; font-weight: 600;">📊 Opportunità in Pipeline per Stato:</h3>';
@@ -4711,7 +4711,7 @@
                 if (currentOppTab === 'calda') {
                     filtered = allOpportunities.filter(o => (o.heat_level || 'tiepida') === 'calda' && o.stage !== 'Closed Won' && o.stage !== 'Closed Lost');
                 } else if (currentOppTab === 'tiepida') {
-                    filtered = allOpportunities.filter(o => (o.heat_level || 'tiepida') === 'tiepida' && o.stage !== 'Closed Won' && o.stage !== 'Closed Lost');
+                    filtered = allOpportunities.filter(o => o.heat_level === 'tiepida' && o.stage !== 'Closed Won' && o.stage !== 'Closed Lost');
                 } else if (currentOppTab === 'fredda_speranza') {
                     filtered = allOpportunities.filter(o => (o.heat_level || 'tiepida') === 'fredda_speranza' && o.stage !== 'Closed Won' && o.stage !== 'Closed Lost');
                 } else if (currentOppTab === 'fredda_gelo') {

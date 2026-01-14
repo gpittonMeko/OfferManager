@@ -5,7 +5,9 @@ import sys
 import os
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent))
+# Aggiungi la root del progetto al path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
 
 from crm_app_completo import app, db, Opportunity
 from sqlalchemy import text
