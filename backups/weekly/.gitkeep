@@ -1,0 +1,2 @@
+# Directory per backup settimanali
+# I file .db vengono ignorati da git (vedi .gitignore)
