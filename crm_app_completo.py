@@ -8226,7 +8226,9 @@ def assistant():
         "For update_opportunity_amount: provide opportunity_id or opportunity_name, and amount (number). "
         "For update_opportunity_close_date: provide opportunity_id or opportunity_name, and close_date (YYYY-MM-DD). "
         "For create_task: provide task_type (send_offer, call, recall, other), description, "
-        "optional due_date (YYYY-MM-DD), and opportunity_id/opportunity_name or account_id/account_name. "
+        "optional due_date (YYYY-MM-DD), optional assigned_to_id (user ID) or assigned_to_name (username like 'giovanni', 'mauro', 'davide', 'filippo'), "
+        "and opportunity_id/opportunity_name or account_id/account_name. "
+        "If assigned_to_name is provided, try to match it to a user (e.g., 'giovanni' or 'pitton' for Giovanni Pitton). "
         "Use standard stage values: Qualification, Needs Analysis, Value Proposition, Id. Decision Makers, "
         "Perception Analysis, Proposal/Price Quote, Negotiation/Review, Closed Won, Closed Lost. "
         "For names, be tolerant of typos and partial matches - use the closest match you can find."
@@ -8458,25 +8460,60 @@ def assistant():
             due_date = parse_date(action.get('due_date'))
             opp = resolve_opportunity(action)
             account = resolve_account(action)
+            
+            # Risolvi assigned_to_id
+            assigned_to_id = None
+            if action.get('assigned_to_id'):
+                assigned_to_id = action.get('assigned_to_id')
+            elif action.get('assigned_to_name'):
+                # Cerca utente per nome (fuzzy matching)
+                assigned_name = action.get('assigned_to_name').strip().lower()
+                users = User.query.all()
+                for user in users:
+                    username_lower = user.username.lower()
+                    first_name_lower = (user.first_name or '').lower()
+                    last_name_lower = (user.last_name or '').lower()
+                    full_name_lower = f"{first_name_lower} {last_name_lower}".strip()
+                    
+                    if (assigned_name in username_lower or 
+                        assigned_name in first_name_lower or 
+                        assigned_name in last_name_lower or
+                        assigned_name in full_name_lower):
+                        assigned_to_id = user.id
+                        break
+            else:
+                assigned_to_id = session['user_id']  # Default: utente corrente
+            
             if not description:
                 errors.append({'type': action_type, 'error': 'Descrizione mancante'})
                 continue
+            
             task = OpportunityTask(
                 opportunity_id=opp.id if opp else None,
                 account_id=account.id if account else None,
                 task_type=task_type,
                 description=description,
-                assigned_to_id=session['user_id'],
+                assigned_to_id=assigned_to_id,
                 due_date=due_date
             )
             db.session.add(task)
             db.session.commit()
+            
+            # Invia email alla persona assegnata
+            try:
+                opp_name = opp.name if opp else (account.name if account else "Task globale")
+                send_task_notification_email(task, opp_name, opp)
+            except Exception as e:
+                print(f"Errore invio email task (assistente): {str(e)}")
+                # Non bloccare se l'email fallisce
+            
             results.append({
                 'type': action_type,
                 'task_id': task.id,
                 'task_type': task.task_type,
                 'opportunity_id': task.opportunity_id,
-                'account_id': task.account_id
+                'account_id': task.account_id,
+                'assigned_to_id': task.assigned_to_id
             })
         elif action_type == 'update_opportunity_heat_level':
             opp = resolve_opportunity(action)
