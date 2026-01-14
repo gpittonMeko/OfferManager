@@ -1597,6 +1597,97 @@
             background: white;
             border: 1px solid var(--border-color);
             color: var(--text-dark);
+            animation: slideInMessage 0.3s ease-out;
+        }
+        
+        .assistant-message.bot.welcome-message {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border: 2px solid #3b82f6;
+            border-radius: 12px;
+            padding: 16px;
+        }
+        
+        @keyframes slideInMessage {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .assistant-chat-toggle {
+            animation: pulse 2s infinite;
+        }
+        
+        .assistant-chat-toggle:hover {
+            animation: none;
+            transform: scale(1.1);
+        }
+        
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 8px 0;
+        }
+        
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            background: #3b82f6;
+            border-radius: 50%;
+            animation: typingBounce 1.4s infinite;
+        }
+        
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes typingBounce {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.7;
+            }
+            30% {
+                transform: translateY(-10px);
+                opacity: 1;
+            }
+        }
+        
+        .assistant-chat-widget.open {
+            animation: slideUpChat 0.3s ease-out;
+        }
+        
+        @keyframes slideUpChat {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        /* Effetto glow sul pulsante toggle quando ci sono nuovi suggerimenti */
+        .assistant-chat-toggle.has-suggestions {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
         }
         .assistant-input-row {
             display: grid;
@@ -8865,14 +8956,32 @@
             
             const message = document.createElement('div');
             message.className = `assistant-message ${role}`;
+            
+            // Aggiungi animazione
+            message.style.opacity = '0';
+            message.style.transform = 'translateY(10px)';
+            
             if (role === 'bot') {
                 // Per i messaggi del bot, permetti HTML (già sanitizzato)
                 message.innerHTML = text;
+                // Aggiungi indicatore typing per bot
+                if (text.includes('...') || text.trim() === '') {
+                    message.innerHTML = '<div class="typing-indicator"><span></span><span></span><span></span></div>';
+                }
             } else {
                 // Per i messaggi utente, solo testo
                 message.textContent = text;
             }
+            
             targetContainer.appendChild(message);
+            
+            // Animazione fade-in
+            setTimeout(() => {
+                message.style.transition = 'all 0.3s ease-out';
+                message.style.opacity = '1';
+                message.style.transform = 'translateY(0)';
+            }, 10);
+            
             targetContainer.scrollTop = targetContainer.scrollHeight;
         }
         
@@ -9000,12 +9109,22 @@
                 openAssistantChat();
             }
 
+            // Mostra indicatore typing
+            const typingMsg = document.createElement('div');
+            typingMsg.className = 'assistant-message bot';
+            typingMsg.innerHTML = '<div class="typing-indicator"><span></span><span></span><span></span></div>';
+            messagesContainer.appendChild(typingMsg);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
             try {
                 const res = await fetch('/api/assistant', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ message })
                 });
+                
+                // Rimuovi indicatore typing
+                typingMsg.remove();
                 
                 if (!res.ok) {
                     const errorData = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
@@ -9357,14 +9476,8 @@
         </div>
         <div class="assistant-chat-body">
             <div id="assistant-chat-messages" class="assistant-chat-messages">
-                <div class="assistant-message bot">
-                    Ciao! Sono il tuo assistente CRM. Puoi chiedermi di:
-                    <ul style="margin: 8px 0; padding-left: 20px; font-size: 13px;">
-                        <li>Cambiare lo stato di un'opportunità</li>
-                        <li>Creare attività assegnate a qualcuno</li>
-                        <li>Aggiornare categorie e calore</li>
-                        <li>Modificare importi e date</li>
-                    </ul>
+                <div class="assistant-message bot welcome-message" id="assistant-welcome-message">
+                    <!-- Contenuto dinamico caricato via JS -->
                 </div>
             </div>
             <div class="assistant-chat-input-container">
