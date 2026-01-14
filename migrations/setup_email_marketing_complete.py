@@ -5,20 +5,40 @@ Script completo per inizializzare Email Marketing
 """
 import os
 import sys
+from pathlib import Path
+
+# Carica variabili d'ambiente da file .env se esiste
+def load_env_file():
+    """Carica variabili d'ambiente da file .env"""
+    env_file = Path('.env')
+    if env_file.exists():
+        try:
+            # Prova con python-dotenv se disponibile
+            try:
+                from dotenv import load_dotenv
+                load_dotenv()
+                return
+            except ImportError:
+                pass
+            
+            # Fallback: leggi manualmente il file .env
+            with open(env_file, 'r', encoding='utf-8') as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith('#') and '=' in line:
+                        key, value = line.split('=', 1)
+                        os.environ[key.strip()] = value.strip()
+        except Exception as e:
+            print(f"Warning: Errore caricamento .env: {e}")
+
+load_env_file()
 
 # Imposta variabili d'ambiente Mailgun (da file .env o variabili d'ambiente)
-# IMPORTANTE: Non committare chiavi API nel repository!
-# Usa variabili d'ambiente o un file .env (non tracciato da git)
-if 'MAILGUN_API_KEY' not in os.environ:
-    os.environ['MAILGUN_API_KEY'] = os.getenv('MAILGUN_API_KEY', 'YOUR_MAILGUN_API_KEY_HERE')
-if 'MAILGUN_DOMAIN' not in os.environ:
-    os.environ['MAILGUN_DOMAIN'] = os.getenv('MAILGUN_DOMAIN', 'infomekosrl.it')
-if 'MAILGUN_FROM_EMAIL' not in os.environ:
-    os.environ['MAILGUN_FROM_EMAIL'] = os.getenv('MAILGUN_FROM_EMAIL', 'noreply@infomekosrl.it')
-if 'MAILGUN_FROM_NAME' not in os.environ:
-    os.environ['MAILGUN_FROM_NAME'] = os.getenv('MAILGUN_FROM_NAME', 'ME.KO. Srl')
-if 'MAILGUN_API_REGION' not in os.environ:
-    os.environ['MAILGUN_API_REGION'] = os.getenv('MAILGUN_API_REGION', 'eu')
+# IMPORTANTE: Le chiavi API sono nel file .env locale (non committato)
+# Se non trovi le variabili, usa i valori di default o fallback
+if 'MAILGUN_API_KEY' not in os.environ or os.environ.get('MAILGUN_API_KEY') == 'YOUR_MAILGUN_API_KEY_HERE':
+    # Se non è stato caricato dal .env, usa il valore di default
+    pass  # Lascia che il codice gestisca il fallback
 
 # Importa dopo aver settato le env
 from crm_app_completo import db, app, EmailTemplate, User

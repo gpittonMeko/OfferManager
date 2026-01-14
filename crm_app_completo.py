@@ -7,6 +7,32 @@ import sys
 import os
 from pathlib import Path
 
+# Carica variabili d'ambiente da file .env se esiste
+def load_env_file():
+    """Carica variabili d'ambiente da file .env"""
+    env_file = Path('.env')
+    if env_file.exists():
+        try:
+            # Prova con python-dotenv se disponibile
+            try:
+                from dotenv import load_dotenv
+                load_dotenv()
+                return
+            except ImportError:
+                pass
+            
+            # Fallback: leggi manualmente il file .env
+            with open(env_file, 'r', encoding='utf-8') as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith('#') and '=' in line:
+                        key, value = line.split('=', 1)
+                        os.environ[key.strip()] = value.strip()
+        except Exception as e:
+            print(f"Warning: Errore caricamento .env: {e}")
+
+load_env_file()
+
 if sys.platform == 'win32':
     import io
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
