@@ -1194,25 +1194,47 @@ def dashboard_summary():
     
     # Leaderboard - metriche per tutti gli utenti commerciali (senza duplicati)
     commercial_users = User.query.filter_by(role='commerciale').all()
-    # Rimuovi duplicati per nome completo (first_name + last_name) o email
+    # Rimuovi duplicati per nome completo (first_name + last_name), email o username simile
     # Mantieni l'utente con più opportunità o quello principale
     seen_names = {}
+    seen_usernames = {}  # Per username simili (es. filippo, filippo1, filippo2)
     unique_users = []
     
     for user in commercial_users:
         # Crea chiave univoca: nome completo normalizzato o email
         full_name = f"{user.first_name or ''} {user.last_name or ''}".strip().lower()
         email_key = (user.email or '').lower()
+        username_lower = user.username.lower()
         
         # Usa email se disponibile, altrimenti nome
         key = email_key if email_key else full_name
         
         if not key:
-            # Se non c'è né nome né email, usa username
-            key = user.username.lower()
+            # Se non c'è né nome né email, usa username base (senza numeri/suffissi)
+            key = username_lower.rstrip('0123456789').rstrip('_').lower()
+        
+        # Controlla anche username simili (es. filippo, filippo1, filippo2)
+        username_base = username_lower.rstrip('0123456789').rstrip('_').lower()
+        
+        # Se username base è già visto, considera duplicato
+        if username_base in seen_usernames and seen_usernames[username_base] != user.id:
+            existing_user = next((u for u in unique_users if u.id == seen_usernames[username_base]), None)
+            if existing_user:
+                existing_opps = Opportunity.query.filter_by(owner_id=existing_user.id).count()
+                current_opps = Opportunity.query.filter_by(owner_id=user.id).count()
+                
+                # Mantieni quello con più opportunità o username più corto
+                if current_opps > existing_opps or (current_opps == existing_opps and len(user.username) < len(existing_user.username)):
+                    unique_users.remove(existing_user)
+                    seen_names.pop(key, None)
+                    seen_usernames[username_base] = user.id
+                    seen_names[key] = user
+                    unique_users.append(user)
+                continue
         
         if key not in seen_names:
             seen_names[key] = user
+            seen_usernames[username_base] = user.id
             unique_users.append(user)
         else:
             # Se esiste già, mantieni quello con più opportunità o quello principale
@@ -1226,6 +1248,7 @@ def dashboard_summary():
                 # Rimuovi il vecchio e aggiungi il nuovo
                 unique_users.remove(existing_user)
                 seen_names[key] = user
+                seen_usernames[username_base] = user.id
                 unique_users.append(user)
     
     leaderboard = []
@@ -8221,9 +8244,12 @@ def assistant():
         "optional due_date (YYYY-MM-DD), optional assigned_to_id (user ID) or assigned_to_name (username like 'giovanni', 'mauro', 'davide', 'filippo'), "
         "and opportunity_id/opportunity_name or account_id/account_name. "
         "For query_data: provide query_type (top_opportunities, opportunities_by_category, opportunities_by_date, "
-        "highest_value_opportunity, opportunities_by_heat_level, account_opportunities, pipeline_opportunities) and optional filters like "
-        "category (UR, MiR, Unitree, Altri), heat_level, limit (number), month (YYYY-MM), account_name. "
+        "highest_value_opportunity, opportunities_by_heat_level, account_opportunities, pipeline_opportunities, "
+        "contact_phone, account_phone, phone_by_entity) and optional filters like "
+        "category (UR, MiR, Unitree, Altri), heat_level, limit (number), month (YYYY-MM), account_name, contact_name, phone_number. "
         "pipeline_opportunities returns all active opportunities (not Closed Won/Lost). "
+        "contact_phone: search phone by contact name. account_phone: search phone by account name. "
+        "phone_by_entity: find which account/contact/lead has a specific phone number. "
         "For update_data: provide update_type (opportunity, account, task), entity_id or entity_name, "
         "and fields to update (e.g., {amount: 50000, stage: 'Negotiation/Review'}). "
         "For delete_data: provide delete_type (opportunity, account, task), entity_id or entity_name. "
@@ -8777,6 +8803,110 @@ def assistant():
                             'created_at': row[7].isoformat() if row[7] and hasattr(row[7], 'isoformat') else (str(row[7]) if row[7] else None)
                         })
                 
+                elif query_type == 'contact_phone':
+                    # Cerca numero di telefono di un contatto
+                    contact_name = action.get('contact_name', '').strip()
+                    if contact_name:
+                        query = text("""
+                            SELECT c.id, c.first_name, c.last_name, c.phone, c.email, c.title,
+                                   a.name as account_name
+                            FROM contacts c
+                            LEFT JOIN accounts a ON c.account_id = a.id
+                            WHERE (c.first_name || ' ' || c.last_name) LIKE :contact_name
+                               OR c.first_name LIKE :contact_name
+                               OR c.last_name LIKE :contact_name
+                            LIMIT :limit
+                        """)
+                        query_results_raw = db.session.execute(query, {'contact_name': f'%{contact_name}%', 'limit': limit}).fetchall()
+                        for row in query_results_raw:
+                            query_results.append({
+                                'id': row[0],
+                                'first_name': row[1],
+                                'last_name': row[2],
+                                'phone': row[3] or 'N/A',
+                                'email': row[4] or 'N/A',
+                                'title': row[5] or 'N/A',
+                                'account_name': row[6] or 'N/A'
+                            })
+                
+                elif query_type == 'account_phone':
+                    # Cerca numero di telefono di un account
+                    account_name = action.get('account_name', '').strip()
+                    if account_name:
+                        query = text("""
+                            SELECT a.id, a.name, a.phone, a.website, a.industry
+                            FROM accounts a
+                            WHERE a.name LIKE :account_name
+                            LIMIT :limit
+                        """)
+                        query_results_raw = db.session.execute(query, {'account_name': f'%{account_name}%', 'limit': limit}).fetchall()
+                        for row in query_results_raw:
+                            query_results.append({
+                                'id': row[0],
+                                'name': row[1],
+                                'phone': row[2] or 'N/A',
+                                'website': row[3] or 'N/A',
+                                'industry': row[4] or 'N/A'
+                            })
+                
+                elif query_type == 'phone_by_entity':
+                    # Cerca quale account/contact/lead ha un numero di telefono specifico
+                    phone_number = action.get('phone_number', '').strip()
+                    if phone_number:
+                        # Cerca in accounts
+                        query_accounts = text("""
+                            SELECT 'account' as entity_type, a.id, a.name, a.phone, NULL as contact_name
+                            FROM accounts a
+                            WHERE a.phone LIKE :phone
+                            LIMIT :limit
+                        """)
+                        accounts_results = db.session.execute(query_accounts, {'phone': f'%{phone_number}%', 'limit': limit}).fetchall()
+                        for row in accounts_results:
+                            query_results.append({
+                                'entity_type': row[0],
+                                'id': row[1],
+                                'name': row[2],
+                                'phone': row[3] or 'N/A',
+                                'contact_name': row[4]
+                            })
+                        
+                        # Cerca in contacts
+                        query_contacts = text("""
+                            SELECT 'contact' as entity_type, c.id, a.name as account_name, c.phone,
+                                   (c.first_name || ' ' || c.last_name) as contact_name
+                            FROM contacts c
+                            LEFT JOIN accounts a ON c.account_id = a.id
+                            WHERE c.phone LIKE :phone
+                            LIMIT :limit
+                        """)
+                        contacts_results = db.session.execute(query_contacts, {'phone': f'%{phone_number}%', 'limit': limit}).fetchall()
+                        for row in contacts_results:
+                            query_results.append({
+                                'entity_type': row[0],
+                                'id': row[1],
+                                'name': row[2] or 'N/A',
+                                'phone': row[3] or 'N/A',
+                                'contact_name': row[4] or 'N/A'
+                            })
+                        
+                        # Cerca in leads
+                        query_leads = text("""
+                            SELECT 'lead' as entity_type, l.id, l.company_name as name, l.phone,
+                                   (l.contact_first_name || ' ' || l.contact_last_name) as contact_name
+                            FROM leads l
+                            WHERE l.phone LIKE :phone
+                            LIMIT :limit
+                        """)
+                        leads_results = db.session.execute(query_leads, {'phone': f'%{phone_number}%', 'limit': limit}).fetchall()
+                        for row in leads_results:
+                            query_results.append({
+                                'entity_type': row[0],
+                                'id': row[1],
+                                'name': row[2] or 'N/A',
+                                'phone': row[3] or 'N/A',
+                                'contact_name': row[4] or 'N/A'
+                            })
+                
                 if query_results:
                     results.append({
                         'type': action_type,
@@ -8928,8 +9058,10 @@ def assistant():
             
             if query_type == 'highest_value_opportunity' and query_results:
                 opp = query_results[0]
+                opp_id = opp.get('id', '')
+                opp_link = f"https://offermanager.meko.it/opportunities/{opp_id}" if opp_id else "#"
                 formatted_reply += f"\n\n📊 **Offerta più alta:**\n"
-                formatted_reply += f"- **Nome:** {opp['name']}\n"
+                formatted_reply += f"- **Nome:** [{opp['name']}]({opp_link})\n"
                 formatted_reply += f"- **Valore:** €{opp['amount']:,.2f}\n"
                 formatted_reply += f"- **Account:** {opp['account_name'] or 'N/A'}\n"
                 formatted_reply += f"- **Stato:** {opp['stage']}\n"
@@ -8938,7 +9070,9 @@ def assistant():
             elif query_type in ['top_opportunities', 'opportunities_by_category', 'opportunities_by_date', 'opportunities_by_heat_level', 'account_opportunities', 'pipeline_opportunities']:
                 formatted_reply += f"\n\n📊 **Risultati ({len(query_results)}):**\n"
                 for i, opp in enumerate(query_results[:limit], 1):
-                    formatted_reply += f"\n{i}. **{opp['name']}**\n"
+                    opp_id = opp.get('id', '')
+                    opp_link = f"https://offermanager.meko.it/opportunities/{opp_id}" if opp_id else "#"
+                    formatted_reply += f"\n{i}. **[{opp['name']}]({opp_link})**\n"
                     formatted_reply += f"   - Valore: €{opp['amount']:,.2f}\n"
                     formatted_reply += f"   - Account: {opp['account_name'] or 'N/A'}\n"
                     formatted_reply += f"   - Stato: {opp['stage']}\n"
@@ -8946,6 +9080,35 @@ def assistant():
                         formatted_reply += f"   - Calore: {opp['heat_level']}\n"
                     if opp['category']:
                         formatted_reply += f"   - Categoria: {opp['category']}\n"
+            
+            elif query_type == 'contact_phone':
+                formatted_reply += f"\n\n📞 **Numeri di telefono contatti ({len(query_results)}):**\n"
+                for i, contact in enumerate(query_results, 1):
+                    formatted_reply += f"\n{i}. **{contact['first_name']} {contact['last_name']}**\n"
+                    formatted_reply += f"   - Telefono: {contact['phone']}\n"
+                    formatted_reply += f"   - Email: {contact['email']}\n"
+                    formatted_reply += f"   - Account: {contact['account_name']}\n"
+                    if contact['title'] != 'N/A':
+                        formatted_reply += f"   - Ruolo: {contact['title']}\n"
+            
+            elif query_type == 'account_phone':
+                formatted_reply += f"\n\n📞 **Numeri di telefono account ({len(query_results)}):**\n"
+                for i, account in enumerate(query_results, 1):
+                    formatted_reply += f"\n{i}. **{account['name']}**\n"
+                    formatted_reply += f"   - Telefono: {account['phone']}\n"
+                    if account['website'] != 'N/A':
+                        formatted_reply += f"   - Website: {account['website']}\n"
+                    if account['industry'] != 'N/A':
+                        formatted_reply += f"   - Settore: {account['industry']}\n"
+            
+            elif query_type == 'phone_by_entity':
+                formatted_reply += f"\n\n📞 **Entità con questo numero ({len(query_results)}):**\n"
+                for i, entity in enumerate(query_results, 1):
+                    entity_type_name = {'account': 'Account', 'contact': 'Contatto', 'lead': 'Lead'}.get(entity['entity_type'], entity['entity_type'])
+                    formatted_reply += f"\n{i}. **{entity_type_name}: {entity['name']}**\n"
+                    formatted_reply += f"   - Telefono: {entity['phone']}\n"
+                    if entity.get('contact_name') and entity['contact_name'] != 'N/A':
+                        formatted_reply += f"   - Contatto: {entity['contact_name']}\n"
     
     # Se ci sono azioni che richiedono approvazione, aggiungi dettagli alla risposta
     if pending_approvals:
