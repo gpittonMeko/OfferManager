@@ -1059,10 +1059,10 @@ def dashboard_summary():
                     pass
             
             # Determina probabilità basandosi su heat_level invece che su probability
-            # Fredde gelo: 0%, Fredde con speranza: 5%, Tiepide: 15%, Calde: 40%
+            # Fredde gelo: 0%, Fredde con speranza: 5%, Tiepide: 15%, Calde: 50%
             heat_level = getattr(opp, 'heat_level', None) or 'da_categorizzare'
             if heat_level == 'calda':
-                probability = 40
+                probability = 50
             elif heat_level == 'tiepida':
                 probability = 15
             elif heat_level == 'fredda_speranza':
@@ -2239,8 +2239,26 @@ def get_or_update_opportunity(opportunity_id):
             columns_check = db.session.execute(text("PRAGMA table_info(opportunities)")).fetchall()
             column_names = [col[1] for col in columns_check]
             if 'heat_level' in column_names:
+                new_heat_level = data['heat_level']
                 update_fields.append("heat_level = :heat_level")
-                update_params['heat_level'] = data['heat_level']
+                update_params['heat_level'] = new_heat_level
+                
+                # Aggiorna automaticamente la probabilità in base al heat_level
+                # Fredde gelo: 0%, Fredde con speranza: 5%, Tiepide: 15%, Calde: 50%
+                if new_heat_level == 'calda':
+                    probability_value = 50
+                elif new_heat_level == 'tiepida':
+                    probability_value = 15
+                elif new_heat_level == 'fredda_speranza':
+                    probability_value = 5
+                elif new_heat_level == 'fredda_gelo':
+                    probability_value = 0
+                else:  # da_categorizzare o altri
+                    probability_value = 0
+                
+                # Aggiorna anche probability
+                update_fields.append("probability = :probability")
+                update_params['probability'] = probability_value
         except:
             pass  # Se non esiste, salta
     if 'folder_path' in data:

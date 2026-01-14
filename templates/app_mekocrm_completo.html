@@ -3372,7 +3372,7 @@
                     const heatContainer = document.getElementById('heat-counts-container');
                     if (heatContainer) {
                         const heatLabels = {
-                            'calda': '🔴 Calde (40%)',
+                            'calda': '🔴 Calde (50%)',
                             'tiepida': '🟡 Tiepide (15%)',
                             'fredda_speranza': '🔵 Fredde con Speranza (5%)',
                             'fredda_gelo': '⚪ Fredde Gelo (0%)',
@@ -5155,18 +5155,37 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ heat_level: heatLevel })
                 });
+                
+                if (!res.ok) {
+                    const errorData = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+                    throw new Error(errorData.error || `HTTP ${res.status}`);
+                }
+                
                 const data = await res.json();
                 if (data.success) {
                     const opp = allOpportunities.find(o => o.id === oppId);
                     if (opp) {
                         opp.heat_level = heatLevel;
+                        // Aggiorna anche probability localmente per feedback immediato
+                        if (heatLevel === 'calda') {
+                            opp.probability = 50;
+                        } else if (heatLevel === 'tiepida') {
+                            opp.probability = 15;
+                        } else if (heatLevel === 'fredda_speranza') {
+                            opp.probability = 5;
+                        } else if (heatLevel === 'fredda_gelo') {
+                            opp.probability = 0;
+                        } else {
+                            opp.probability = 0;
+                        }
                     }
                     renderOpportunities();
                     loadDashboard(); // Ricarica dashboard per aggiornare grafici
                 } else {
-                    alert('Errore: ' + (data.error || 'Unknown'));
+                    throw new Error(data.error || 'Errore sconosciuto');
                 }
             } catch (err) {
+                console.error('Errore aggiornamento heat_level:', err);
                 alert('Errore: ' + err.message);
             }
         }
