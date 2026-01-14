@@ -9069,6 +9069,8 @@
                             actionsHtml += `<li>Attività creata (ID: ${action.task_id}, Tipo: ${action.task_type})</li>`;
                         } else if (action.type === 'update_opportunity_heat_level') {
                             actionsHtml += `<li>Calore opportunità ${action.opportunity_id} aggiornato a: ${action.heat_level}</li>`;
+                        } else if (action.type === 'create_campaign') {
+                            actionsHtml += `<li>Campagna email creata: ${action.campaign_name} (ID: ${action.campaign_id})</li>`;
                         } else if (action.type === 'update_data') {
                             actionsHtml += `<li>Aggiornamento ${action.update_type}: ${action.entity_name || action.entity_id} - Campi: ${action.updated_fields?.join(', ') || 'N/A'}</li>`;
                         } else if (action.type === 'delete_data') {

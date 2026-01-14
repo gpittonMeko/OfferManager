@@ -9240,11 +9240,11 @@ def assistant():
                     if BeautifulSoup:
                         text_content = BeautifulSoup(html_content, 'html.parser').get_text()
                     else:
-                        import re
-                        text_content = re.sub(r'<[^>]+>', '', html_content)
+                        import re as regex_module
+                        text_content = regex_module.sub(r'<[^>]+>', '', html_content)
                 except:
-                    import re
-                    text_content = re.sub(r'<[^>]+>', '', html_content)
+                    import re as regex_module
+                    text_content = regex_module.sub(r'<[^>]+>', '', html_content)
             
             # Crea campagna
             campaign = EmailCampaign(
