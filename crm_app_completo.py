@@ -8211,7 +8211,7 @@ def assistant():
     system_prompt = (
         "You are a CRM assistant. Reply ONLY in JSON with keys: reply (string), actions (array). "
         "Allowed action types: update_opportunity_stage, update_opportunity_category, update_opportunity_heat_level, "
-        "update_opportunity_amount, update_opportunity_close_date, create_task. "
+        "update_opportunity_amount, update_opportunity_close_date, create_task, query_data. "
         "For update_opportunity_stage: provide opportunity_id or opportunity_name, and stage. "
         "For update_opportunity_category: provide opportunity_id or opportunity_name, and category (UR, MiR, Unitree, Altri). "
         "For update_opportunity_heat_level: provide opportunity_id or opportunity_name, and heat_level (calda, tiepida, fredda_speranza, fredda_gelo, da_categorizzare). "
@@ -8220,7 +8220,9 @@ def assistant():
         "For create_task: provide task_type (send_offer, call, recall, other), description, "
         "optional due_date (YYYY-MM-DD), optional assigned_to_id (user ID) or assigned_to_name (username like 'giovanni', 'mauro', 'davide', 'filippo'), "
         "and opportunity_id/opportunity_name or account_id/account_name. "
-        "If assigned_to_name is provided, try to match it to a user (e.g., 'giovanni' or 'pitton' for Giovanni Pitton). "
+        "For query_data: provide query_type (top_opportunities, opportunities_by_category, opportunities_by_date, "
+        "highest_value_opportunity, opportunities_by_heat_level, account_opportunities) and optional filters like "
+        "category (UR, MiR, Unitree, Altri), heat_level, limit (number), month (YYYY-MM), account_name. "
         "Use standard stage values: Qualification, Needs Analysis, Value Proposition, Id. Decision Makers, "
         "Perception Analysis, Proposal/Price Quote, Negotiation/Review, Closed Won, Closed Lost. "
         "For names, be tolerant of typos and partial matches - use the closest match you can find."
@@ -8564,18 +8566,234 @@ def assistant():
                 results.append({'type': action_type, 'opportunity_id': opp.id, 'close_date': close_date.isoformat() if close_date else None})
             except (ValueError, TypeError) as e:
                 errors.append({'type': action_type, 'error': f'Data non valida: {str(e)}'})
+        elif action_type == 'query_data':
+            query_type = action.get('query_type', '').strip()
+            limit = action.get('limit', 10)
+            try:
+                limit = int(limit) if limit else 10
+            except:
+                limit = 10
+            
+            query_results = []
+            
+            if query_type == 'top_opportunities':
+                # Top opportunità per valore
+                from sqlalchemy import text
+                query = text("""
+                    SELECT o.id, o.name, o.amount, o.stage, o.heat_level, o.supplier_category,
+                           a.name as account_name, o.created_at
+                    FROM opportunities o
+                    LEFT JOIN accounts a ON o.account_id = a.id
+                    WHERE o.stage NOT IN ('Closed Won', 'Closed Lost')
+                    ORDER BY COALESCE(o.amount, 0) DESC
+                    LIMIT :limit
+                """)
+                results = db.session.execute(query, {'limit': limit}).fetchall()
+                for row in results:
+                    query_results.append({
+                        'id': row[0],
+                        'name': row[1],
+                        'amount': row[2] or 0,
+                        'stage': row[3],
+                        'heat_level': row[4],
+                        'category': row[5],
+                        'account_name': row[6],
+                        'created_at': row[7].isoformat() if row[7] else None
+                    })
+            
+            elif query_type == 'opportunities_by_category':
+                category = action.get('category', '').strip()
+                if category:
+                    query = text("""
+                        SELECT o.id, o.name, o.amount, o.stage, o.heat_level, o.supplier_category,
+                               a.name as account_name, o.created_at
+                        FROM opportunities o
+                        LEFT JOIN accounts a ON o.account_id = a.id
+                        WHERE o.supplier_category LIKE :category
+                          AND o.stage NOT IN ('Closed Won', 'Closed Lost')
+                        ORDER BY o.created_at DESC
+                        LIMIT :limit
+                    """)
+                    results = db.session.execute(query, {'category': f'%{category}%', 'limit': limit}).fetchall()
+                    for row in results:
+                        query_results.append({
+                            'id': row[0],
+                            'name': row[1],
+                            'amount': row[2] or 0,
+                            'stage': row[3],
+                            'heat_level': row[4],
+                            'category': row[5],
+                            'account_name': row[6],
+                            'created_at': row[7].isoformat() if row[7] else None
+                        })
+            
+            elif query_type == 'opportunities_by_date':
+                month = action.get('month', '').strip()
+                category = action.get('category', '').strip()
+                if month:
+                    query = text("""
+                        SELECT o.id, o.name, o.amount, o.stage, o.heat_level, o.supplier_category,
+                               a.name as account_name, o.created_at
+                        FROM opportunities o
+                        LEFT JOIN accounts a ON o.account_id = a.id
+                        WHERE strftime('%Y-%m', o.created_at) = :month
+                          AND o.stage NOT IN ('Closed Won', 'Closed Lost')
+                    """)
+                    params = {'month': month, 'limit': limit}
+                    if category:
+                        query = text("""
+                            SELECT o.id, o.name, o.amount, o.stage, o.heat_level, o.supplier_category,
+                                   a.name as account_name, o.created_at
+                            FROM opportunities o
+                            LEFT JOIN accounts a ON o.account_id = a.id
+                            WHERE strftime('%Y-%m', o.created_at) = :month
+                              AND o.supplier_category LIKE :category
+                              AND o.stage NOT IN ('Closed Won', 'Closed Lost')
+                            ORDER BY COALESCE(o.amount, 0) DESC
+                            LIMIT :limit
+                        """)
+                        params['category'] = f'%{category}%'
+                    else:
+                        query = text(query.text + " ORDER BY COALESCE(o.amount, 0) DESC LIMIT :limit")
+                    
+                    results = db.session.execute(query, params).fetchall()
+                    for row in results:
+                        query_results.append({
+                            'id': row[0],
+                            'name': row[1],
+                            'amount': row[2] or 0,
+                            'stage': row[3],
+                            'heat_level': row[4],
+                            'category': row[5],
+                            'account_name': row[6],
+                            'created_at': row[7].isoformat() if row[7] else None
+                        })
+            
+            elif query_type == 'highest_value_opportunity':
+                query = text("""
+                    SELECT o.id, o.name, o.amount, o.stage, o.heat_level, o.supplier_category,
+                           a.name as account_name, o.created_at
+                    FROM opportunities o
+                    LEFT JOIN accounts a ON o.account_id = a.id
+                    WHERE o.stage NOT IN ('Closed Won', 'Closed Lost')
+                    ORDER BY COALESCE(o.amount, 0) DESC
+                    LIMIT 1
+                """)
+                result = db.session.execute(query).fetchone()
+                if result:
+                    query_results.append({
+                        'id': result[0],
+                        'name': result[1],
+                        'amount': result[2] or 0,
+                        'stage': result[3],
+                        'heat_level': result[4],
+                        'category': result[5],
+                        'account_name': result[6],
+                        'created_at': result[7].isoformat() if result[7] else None
+                    })
+            
+            elif query_type == 'opportunities_by_heat_level':
+                heat_level = action.get('heat_level', '').strip()
+                if heat_level:
+                    query = text("""
+                        SELECT o.id, o.name, o.amount, o.stage, o.heat_level, o.supplier_category,
+                               a.name as account_name, o.created_at
+                        FROM opportunities o
+                        LEFT JOIN accounts a ON o.account_id = a.id
+                        WHERE o.heat_level = :heat_level
+                          AND o.stage NOT IN ('Closed Won', 'Closed Lost')
+                        ORDER BY COALESCE(o.amount, 0) DESC
+                        LIMIT :limit
+                    """)
+                    results = db.session.execute(query, {'heat_level': heat_level, 'limit': limit}).fetchall()
+                    for row in results:
+                        query_results.append({
+                            'id': row[0],
+                            'name': row[1],
+                            'amount': row[2] or 0,
+                            'stage': row[3],
+                            'heat_level': row[4],
+                            'category': row[5],
+                            'account_name': row[6],
+                            'created_at': row[7].isoformat() if row[7] else None
+                        })
+            
+            elif query_type == 'account_opportunities':
+                account_name = action.get('account_name', '').strip()
+                if account_name:
+                    query = text("""
+                        SELECT o.id, o.name, o.amount, o.stage, o.heat_level, o.supplier_category,
+                               a.name as account_name, o.created_at
+                        FROM opportunities o
+                        LEFT JOIN accounts a ON o.account_id = a.id
+                        WHERE a.name LIKE :account_name
+                          AND o.stage NOT IN ('Closed Won', 'Closed Lost')
+                        ORDER BY o.created_at DESC
+                        LIMIT :limit
+                    """)
+                    results = db.session.execute(query, {'account_name': f'%{account_name}%', 'limit': limit}).fetchall()
+                    for row in results:
+                        query_results.append({
+                            'id': row[0],
+                            'name': row[1],
+                            'amount': row[2] or 0,
+                            'stage': row[3],
+                            'heat_level': row[4],
+                            'category': row[5],
+                            'account_name': row[6],
+                            'created_at': row[7].isoformat() if row[7] else None
+                        })
+            
+            if query_results:
+                results.append({
+                    'type': action_type,
+                    'query_type': query_type,
+                    'results': query_results,
+                    'count': len(query_results)
+                })
+            else:
+                errors.append({'type': action_type, 'error': f'Nessun risultato trovato per query_type: {query_type}'})
+        
         else:
             errors.append({'type': action_type or 'unknown', 'error': 'Tipo azione non supportato'})
 
+    # Formatta risposte per query_data in modo leggibile
+    formatted_reply = reply
+    for result in results:
+        if result.get('type') == 'query_data':
+            query_type = result.get('query_type', '')
+            query_results = result.get('results', [])
+            
+            if query_type == 'highest_value_opportunity' and query_results:
+                opp = query_results[0]
+                formatted_reply += f"\n\n📊 **Offerta più alta:**\n"
+                formatted_reply += f"- **Nome:** {opp['name']}\n"
+                formatted_reply += f"- **Valore:** €{opp['amount']:,.2f}\n"
+                formatted_reply += f"- **Account:** {opp['account_name'] or 'N/A'}\n"
+                formatted_reply += f"- **Stato:** {opp['stage']}\n"
+                formatted_reply += f"- **Calore:** {opp['heat_level'] or 'N/A'}\n"
+            
+            elif query_type in ['top_opportunities', 'opportunities_by_category', 'opportunities_by_date', 'opportunities_by_heat_level', 'account_opportunities']:
+                formatted_reply += f"\n\n📊 **Risultati ({len(query_results)}):**\n"
+                for i, opp in enumerate(query_results[:limit], 1):
+                    formatted_reply += f"\n{i}. **{opp['name']}**\n"
+                    formatted_reply += f"   - Valore: €{opp['amount']:,.2f}\n"
+                    formatted_reply += f"   - Account: {opp['account_name'] or 'N/A'}\n"
+                    formatted_reply += f"   - Stato: {opp['stage']}\n"
+                    if opp['heat_level']:
+                        formatted_reply += f"   - Calore: {opp['heat_level']}\n"
+                    if opp['category']:
+                        formatted_reply += f"   - Categoria: {opp['category']}\n"
+    
     # Salva log con risultati
-    log_entry.ai_reply = reply
+    log_entry.ai_reply = formatted_reply
     log_entry.actions_executed = json.dumps(results)
     log_entry.errors = json.dumps(errors) if errors else None
     db.session.add(log_entry)
     db.session.commit()
 
     return jsonify({
-        'reply': reply,
+        'reply': formatted_reply,
         'actions': results,
         'errors': errors
     })
