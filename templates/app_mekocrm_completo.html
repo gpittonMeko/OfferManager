@@ -8904,10 +8904,29 @@
                 
                 const data = await res.json();
                 const reply = data.reply || 'Operazione completata.';
-                appendAssistantMessage('bot', reply, messagesContainer);
+                
+                // Formatta reply con markdown base (bold, liste)
+                const formattedReply = reply.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+                appendAssistantMessage('bot', formattedReply, messagesContainer);
+                
+                // Se ci sono azioni che richiedono approvazione, mostra pulsanti
+                if (data.requires_approval && data.pending_approvals && data.pending_approvals.length > 0) {
+                    let approvalHtml = '<div style="margin-top: 12px; padding: 16px; background: #fef3c7; border-radius: 8px; border-left: 4px solid #f59e0b;"><strong style="font-size: 13px; color: #92400e;">⚠️ AZIONI IN ATTESA DI APPROVAZIONE:</strong><div style="margin-top: 12px; display: flex; gap: 8px;">';
+                    
+                    data.pending_approvals.forEach((approval, index) => {
+                        approvalHtml += `<button onclick="approveAssistantAction(${data.log_id || 0}, ${index})" style="padding: 8px 16px; background: #10b981; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px;">✅ Approva ${index + 1}</button>`;
+                    });
+                    
+                    approvalHtml += `<button onclick="cancelAssistantApproval()" style="padding: 8px 16px; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px;">❌ Annulla</button>`;
+                    approvalHtml += '</div></div>';
+                    
+                    if (actionsDiv) {
+                        actionsDiv.innerHTML = approvalHtml;
+                    }
+                }
                 
                 // Mostra azioni eseguite
-                if (data.actions && data.actions.length > 0 && actionsDiv) {
+                if (data.actions && data.actions.length > 0 && actionsDiv && !data.requires_approval) {
                     let actionsHtml = '<div style="margin-top: 12px; padding: 12px; background: #f0f9ff; border-radius: 8px; border-left: 4px solid #3b82f6;"><strong style="font-size: 12px; color: #1e40af;">✅ Azioni eseguite:</strong><ul style="margin: 8px 0 0 0; padding-left: 20px; font-size: 12px;">';
                     data.actions.forEach(action => {
                         if (action.type === 'update_opportunity_stage') {
@@ -8918,10 +8937,14 @@
                             actionsHtml += `<li>Attività creata (ID: ${action.task_id}, Tipo: ${action.task_type})</li>`;
                         } else if (action.type === 'update_opportunity_heat_level') {
                             actionsHtml += `<li>Calore opportunità ${action.opportunity_id} aggiornato a: ${action.heat_level}</li>`;
+                        } else if (action.type === 'update_data') {
+                            actionsHtml += `<li>Aggiornamento ${action.update_type}: ${action.entity_name || action.entity_id} - Campi: ${action.updated_fields?.join(', ') || 'N/A'}</li>`;
+                        } else if (action.type === 'delete_data') {
+                            actionsHtml += `<li>Eliminazione ${action.delete_type}: ${action.entity_name || action.entity_id}</li>`;
                         }
                     });
                     actionsHtml += '</ul></div>';
-                    actionsDiv.innerHTML = actionsHtml;
+                    actionsDiv.innerHTML = (actionsDiv.innerHTML || '') + actionsHtml;
                 }
                 
                 // Mostra errori se presenti
@@ -8935,18 +8958,97 @@
                 }
                 
                 // Ricarica dati se ci sono state modifiche
-                if (data.actions && data.actions.length > 0) {
+                if (data.actions && data.actions.length > 0 && !data.requires_approval) {
                     loadOpportunities(currentOpportunitiesPage);
                     loadLeads(currentLeadsPage);
                     loadAccounts(currentAccountsPage);
                     loadMyTasks();
                     loadDashboard();
                 }
+                
+                // Salva log_id per approvazioni future
+                if (data.log_id) {
+                    window.lastAssistantLogId = data.log_id;
+                }
             } catch (err) {
                 console.error('Errore assistente:', err);
                 appendAssistantMessage('bot', '❌ Errore: ' + err.message, messagesContainer);
             } finally {
                 assistantBusy = false;
+            }
+        }
+        
+        // Funzione per approvare un'azione
+        async function approveAssistantAction(logId, approvalIndex) {
+            if (assistantBusy) return;
+            assistantBusy = true;
+            
+            const messagesContainer = document.getElementById('assistant-chat-messages') || document.getElementById('assistant-messages');
+            const actionsDiv = document.getElementById('assistant-actions');
+            
+            appendAssistantMessage('user', '✅ Approvo', messagesContainer);
+            
+            try {
+                const res = await fetch('/api/assistant/approve', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        log_id: logId,
+                        approval_index: approvalIndex
+                    })
+                });
+                
+                if (!res.ok) {
+                    const errorData = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+                    appendAssistantMessage('bot', '❌ Errore approvazione: ' + (errorData.error || 'Errore sconosciuto'), messagesContainer);
+                    return;
+                }
+                
+                const data = await res.json();
+                if (data.success) {
+                    appendAssistantMessage('bot', '✅ Azione approvata ed eseguita con successo!', messagesContainer);
+                    
+                    // Mostra risultati
+                    if (data.actions && data.actions.length > 0 && actionsDiv) {
+                        let actionsHtml = '<div style="margin-top: 12px; padding: 12px; background: #d1fae5; border-radius: 8px; border-left: 4px solid #10b981;"><strong style="font-size: 12px; color: #065f46;">✅ Azione eseguita:</strong><ul style="margin: 8px 0 0 0; padding-left: 20px; font-size: 12px;">';
+                        data.actions.forEach(action => {
+                            if (action.type === 'update_data') {
+                                actionsHtml += `<li>Aggiornamento ${action.update_type}: ${action.entity_name || action.entity_id} - Campi: ${action.updated_fields?.join(', ') || 'N/A'}</li>`;
+                            } else if (action.type === 'delete_data') {
+                                actionsHtml += `<li>Eliminazione ${action.delete_type}: ${action.entity_name || action.entity_id}</li>`;
+                            }
+                        });
+                        actionsHtml += '</ul></div>';
+                        actionsDiv.innerHTML = actionsHtml;
+                    }
+                    
+                    // Ricarica dati
+                    loadOpportunities(currentOpportunitiesPage);
+                    loadLeads(currentLeadsPage);
+                    loadAccounts(currentAccountsPage);
+                    loadMyTasks();
+                    loadDashboard();
+                } else {
+                    appendAssistantMessage('bot', '❌ Errore durante l\'esecuzione dell\'azione', messagesContainer);
+                }
+            } catch (err) {
+                console.error('Errore approvazione:', err);
+                appendAssistantMessage('bot', '❌ Errore: ' + err.message, messagesContainer);
+            } finally {
+                assistantBusy = false;
+            }
+        }
+        
+        // Funzione per annullare approvazione
+        function cancelAssistantApproval() {
+            const messagesContainer = document.getElementById('assistant-chat-messages') || document.getElementById('assistant-messages');
+            const actionsDiv = document.getElementById('assistant-actions');
+            
+            appendAssistantMessage('user', '❌ Annullo', messagesContainer);
+            appendAssistantMessage('bot', '✅ Azione annullata. Nessuna modifica è stata effettuata.', messagesContainer);
+            
+            if (actionsDiv) {
+                actionsDiv.innerHTML = '<div style="padding: 12px; background: #fee2e2; border-radius: 8px; border-left: 4px solid #ef4444; color: #991b1b; font-size: 12px;">❌ Azione annullata</div>';
             }
         }
 

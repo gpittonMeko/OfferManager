@@ -8223,6 +8223,10 @@ def assistant():
         "For query_data: provide query_type (top_opportunities, opportunities_by_category, opportunities_by_date, "
         "highest_value_opportunity, opportunities_by_heat_level, account_opportunities) and optional filters like "
         "category (UR, MiR, Unitree, Altri), heat_level, limit (number), month (YYYY-MM), account_name. "
+        "For update_data: provide update_type (opportunity, account, task), entity_id or entity_name, "
+        "and fields to update (e.g., {amount: 50000, stage: 'Negotiation/Review'}). "
+        "For delete_data: provide delete_type (opportunity, account, task), entity_id or entity_name. "
+        "IMPORTANT: For update_data and delete_data, set requires_approval: true in the action. "
         "Use standard stage values: Qualification, Needs Analysis, Value Proposition, Id. Decision Makers, "
         "Perception Analysis, Proposal/Price Quote, Negotiation/Review, Closed Won, Closed Lost. "
         "For names, be tolerant of typos and partial matches - use the closest match you can find."
@@ -8419,6 +8423,7 @@ def assistant():
 
     results = []
     errors = []
+    pending_approvals = []  # Azioni che richiedono approvazione
 
     for action in actions:
         action_type = (action.get('type') or '').strip()
@@ -8754,6 +8759,131 @@ def assistant():
             else:
                 errors.append({'type': action_type, 'error': f'Nessun risultato trovato per query_type: {query_type}'})
         
+        elif action_type == 'update_data':
+            # Richiede approvazione - non esegue subito
+            requires_approval = action.get('requires_approval', True)
+            if requires_approval:
+                pending_approvals.append({
+                    'type': action_type,
+                    'update_type': action.get('update_type'),
+                    'entity_id': action.get('entity_id'),
+                    'entity_name': action.get('entity_name'),
+                    'fields': action.get('fields', {}),
+                    'action_data': action
+                })
+            else:
+                # Esegui direttamente (solo se esplicitamente approvato)
+                update_type = action.get('update_type', '').strip()
+                entity_id = action.get('entity_id')
+                entity_name = action.get('entity_name', '').strip()
+                fields = action.get('fields', {})
+                
+                if update_type == 'opportunity':
+                    opp = None
+                    if entity_id:
+                        opp = Opportunity.query.get(entity_id)
+                    elif entity_name:
+                        matches = Opportunity.query.filter(Opportunity.name.ilike(f"%{entity_name}%")).all()
+                        if len(matches) == 1:
+                            opp = matches[0]
+                    
+                    if not opp:
+                        errors.append({'type': action_type, 'error': 'Opportunità non trovata'})
+                        continue
+                    
+                    # Aggiorna campi
+                    updated_fields = []
+                    if 'amount' in fields:
+                        try:
+                            opp.amount = float(fields['amount'])
+                            updated_fields.append(f"amount = {opp.amount}")
+                        except:
+                            pass
+                    if 'stage' in fields:
+                        opp.stage = fields['stage']
+                        updated_fields.append(f"stage = {opp.stage}")
+                    if 'heat_level' in fields:
+                        opp.heat_level = fields['heat_level']
+                        updated_fields.append(f"heat_level = {opp.heat_level}")
+                    if 'supplier_category' in fields:
+                        opp.supplier_category = fields['supplier_category']
+                        updated_fields.append(f"supplier_category = {opp.supplier_category}")
+                    if 'description' in fields:
+                        opp.description = fields['description']
+                        updated_fields.append("description aggiornata")
+                    
+                    opp.updated_at = datetime.utcnow()
+                    db.session.commit()
+                    results.append({
+                        'type': action_type,
+                        'update_type': update_type,
+                        'entity_id': opp.id,
+                        'entity_name': opp.name,
+                        'updated_fields': updated_fields
+                    })
+        
+        elif action_type == 'delete_data':
+            # Richiede approvazione - non esegue subito
+            requires_approval = action.get('requires_approval', True)
+            if requires_approval:
+                pending_approvals.append({
+                    'type': action_type,
+                    'delete_type': action.get('delete_type'),
+                    'entity_id': action.get('entity_id'),
+                    'entity_name': action.get('entity_name'),
+                    'action_data': action
+                })
+            else:
+                # Esegui direttamente (solo se esplicitamente approvato)
+                delete_type = action.get('delete_type', '').strip()
+                entity_id = action.get('entity_id')
+                entity_name = action.get('entity_name', '').strip()
+                
+                if delete_type == 'opportunity':
+                    opp = None
+                    if entity_id:
+                        opp = Opportunity.query.get(entity_id)
+                    elif entity_name:
+                        matches = Opportunity.query.filter(Opportunity.name.ilike(f"%{entity_name}%")).all()
+                        if len(matches) == 1:
+                            opp = matches[0]
+                    
+                    if not opp:
+                        errors.append({'type': action_type, 'error': 'Opportunità non trovata'})
+                        continue
+                    
+                    opp_name = opp.name
+                    opp_id = opp.id
+                    db.session.delete(opp)
+                    db.session.commit()
+                    results.append({
+                        'type': action_type,
+                        'delete_type': delete_type,
+                        'entity_id': opp_id,
+                        'entity_name': opp_name,
+                        'deleted': True
+                    })
+                elif delete_type == 'task':
+                    task = None
+                    if entity_id:
+                        task = OpportunityTask.query.get(entity_id)
+                    
+                    if not task:
+                        errors.append({'type': action_type, 'error': 'Attività non trovata'})
+                        continue
+                    
+                    task_desc = task.description
+                    task_id = task.id
+                    db.session.delete(task)
+                    db.session.commit()
+                    results.append({
+                        'type': action_type,
+                        'delete_type': delete_type,
+                        'entity_id': task_id,
+                        'entity_name': task_desc,
+                        'deleted': True
+                    })
+        
         else:
             errors.append({'type': action_type or 'unknown', 'error': 'Tipo azione non supportato'})
 
@@ -8785,17 +8915,57 @@ def assistant():
                     if opp['category']:
                         formatted_reply += f"   - Categoria: {opp['category']}\n"
     
-    # Salva log con risultati
+    # Se ci sono azioni che richiedono approvazione, aggiungi dettagli alla risposta
+    if pending_approvals:
+        formatted_reply += "\n\n⚠️ **AZIONI CHE RICHIEDONO APPROVAZIONE:**\n"
+        for i, approval in enumerate(pending_approvals, 1):
+            if approval['type'] == 'update_data':
+                formatted_reply += f"\n{i}. **AGGIORNAMENTO {approval['update_type'].upper()}:**\n"
+                if approval['entity_name']:
+                    formatted_reply += f"   - Entità: {approval['entity_name']}\n"
+                if approval['entity_id']:
+                    formatted_reply += f"   - ID: {approval['entity_id']}\n"
+                formatted_reply += f"   - Campi da aggiornare:\n"
+                for field, value in approval['fields'].items():
+                    formatted_reply += f"     • {field}: {value}\n"
+            elif approval['type'] == 'delete_data':
+                formatted_reply += f"\n{i}. **ELIMINAZIONE {approval['delete_type'].upper()}:**\n"
+                if approval['entity_name']:
+                    formatted_reply += f"   - Entità: {approval['entity_name']}\n"
+                if approval['entity_id']:
+                    formatted_reply += f"   - ID: {approval['entity_id']}\n"
+                formatted_reply += f"   ⚠️ ATTENZIONE: Questa azione è irreversibile!\n"
+        
+        formatted_reply += "\n\n💬 Per approvare, rispondi: 'approva' o 'sì'\n"
+        formatted_reply += "💬 Per annullare, rispondi: 'annulla' o 'no'\n"
+    
+    # Salva log con risultati e pending approvals
     log_entry.ai_reply = formatted_reply
     log_entry.actions_executed = json.dumps(results)
     log_entry.errors = json.dumps(errors) if errors else None
     db.session.add(log_entry)
     db.session.commit()
+    
+    # Salva anche le pending approvals nel log per recuperarle dopo
+    if pending_approvals:
+        log_entry.ai_response_raw = json.dumps({
+            'choices': [{
+                'message': {
+                    'content': json.dumps({
+                        'reply': reply,
+                        'actions': [a['action_data'] for a in pending_approvals]
+                    })
+                }
+            }]
+        })
 
     return jsonify({
         'reply': formatted_reply,
         'actions': results,
-        'errors': errors
+        'errors': errors,
+        'pending_approvals': pending_approvals,
+        'requires_approval': len(pending_approvals) > 0,
+        'log_id': log_entry.id
     })
 
 
@@ -8821,6 +8991,164 @@ def get_all_users():
             'created_at': u.created_at.isoformat() if u.created_at else None
         } for u in users]
     })
+
+
+@app.route('/api/assistant/approve', methods=['POST'])
+def approve_assistant_action():
+    """Approva un'azione pendente dell'assistente"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Non autorizzato'}), 401
+    
+    data = request.json or {}
+    approval_index = data.get('approval_index', 0)
+    log_id = data.get('log_id')
+    
+    if not log_id:
+        return jsonify({'error': 'log_id richiesto'}), 400
+    
+    # Recupera il log originale
+    log_entry = AssistantLog.query.get(log_id)
+    if not log_entry or log_entry.user_id != session['user_id']:
+        return jsonify({'error': 'Log non trovato o non autorizzato'}), 404
+    
+    # Parse delle azioni pendenti dal log
+    try:
+        import json
+        actions_data = json.loads(log_entry.ai_response_raw) if log_entry.ai_response_raw else {}
+        choices = actions_data.get('choices', [])
+        if not choices:
+            return jsonify({'error': 'Nessuna azione pendente trovata'}), 400
+        
+        content = choices[0].get('message', {}).get('content', '')
+        parsed = json.loads(content)
+        original_actions = parsed.get('actions', [])
+        
+        # Trova l'azione da approvare
+        if approval_index >= len(original_actions):
+            return jsonify({'error': 'Indice approvazione non valido'}), 400
+        
+        action_to_approve = original_actions[approval_index]
+        action_to_approve['requires_approval'] = False  # Rimuovi richiesta approvazione
+        
+        # Esegui l'azione
+        results = []
+        errors = []
+        
+        action_type = action_to_approve.get('type', '').strip()
+        
+        if action_type == 'update_data':
+            update_type = action_to_approve.get('update_type', '').strip()
+            entity_id = action_to_approve.get('entity_id')
+            entity_name = action_to_approve.get('entity_name', '').strip()
+            fields = action_to_approve.get('fields', {})
+            
+            if update_type == 'opportunity':
+                opp = None
+                if entity_id:
+                    opp = Opportunity.query.get(entity_id)
+                elif entity_name:
+                    matches = Opportunity.query.filter(Opportunity.name.ilike(f"%{entity_name}%")).all()
+                    if len(matches) == 1:
+                        opp = matches[0]
+                
+                if not opp:
+                    errors.append({'type': action_type, 'error': 'Opportunità non trovata'})
+                else:
+                    updated_fields = []
+                    if 'amount' in fields:
+                        try:
+                            opp.amount = float(fields['amount'])
+                            updated_fields.append(f"amount = {opp.amount}")
+                        except:
+                            pass
+                    if 'stage' in fields:
+                        opp.stage = fields['stage']
+                        updated_fields.append(f"stage = {opp.stage}")
+                    if 'heat_level' in fields:
+                        opp.heat_level = fields['heat_level']
+                        # Aggiorna anche probability
+                        if opp.heat_level == 'calda':
+                            opp.probability = 50
+                        elif opp.heat_level == 'tiepida':
+                            opp.probability = 15
+                        elif opp.heat_level == 'fredda_speranza':
+                            opp.probability = 5
+                        elif opp.heat_level == 'fredda_gelo':
+                            opp.probability = 0
+                        updated_fields.append(f"heat_level = {opp.heat_level}")
+                    if 'supplier_category' in fields:
+                        opp.supplier_category = fields['supplier_category']
+                        updated_fields.append(f"supplier_category = {opp.supplier_category}")
+                    if 'description' in fields:
+                        opp.description = fields['description']
+                        updated_fields.append("description aggiornata")
+                    
+                    opp.updated_at = datetime.utcnow()
+                    db.session.commit()
+                    results.append({
+                        'type': action_type,
+                        'update_type': update_type,
+                        'entity_id': opp.id,
+                        'entity_name': opp.name,
+                        'updated_fields': updated_fields
+                    })
+        
+        elif action_type == 'delete_data':
+            delete_type = action_to_approve.get('delete_type', '').strip()
+            entity_id = action_to_approve.get('entity_id')
+            entity_name = action_to_approve.get('entity_name', '').strip()
+            
+            if delete_type == 'opportunity':
+                opp = None
+                if entity_id:
+                    opp = Opportunity.query.get(entity_id)
+                elif entity_name:
+                    matches = Opportunity.query.filter(Opportunity.name.ilike(f"%{entity_name}%")).all()
+                    if len(matches) == 1:
+                        opp = matches[0]
+                
+                if not opp:
+                    errors.append({'type': action_type, 'error': 'Opportunità non trovata'})
+                else:
+                    opp_name = opp.name
+                    opp_id = opp.id
+                    db.session.delete(opp)
+                    db.session.commit()
+                    results.append({
+                        'type': action_type,
+                        'delete_type': delete_type,
+                        'entity_id': opp_id,
+                        'entity_name': opp_name,
+                        'deleted': True
+                    })
+            elif delete_type == 'task':
+                task = None
+                if entity_id:
+                    task = OpportunityTask.query.get(entity_id)
+                
+                if not task:
+                    errors.append({'type': action_type, 'error': 'Attività non trovata'})
+                else:
+                    task_desc = task.description
+                    task_id = task.id
+                    db.session.delete(task)
+                    db.session.commit()
+                    results.append({
+                        'type': action_type,
+                        'delete_type': delete_type,
+                        'entity_id': task_id,
+                        'entity_name': task_desc,
+                        'deleted': True
+                    })
+        
+        return jsonify({
+            'success': True,
+            'actions': results,
+            'errors': errors
+        })
+    
+    except Exception as e:
+        return jsonify({'error': f'Errore approvazione: {str(e)}'}), 500
 
 
 @app.route('/api/assistant/logs', methods=['GET'])
