@@ -53,7 +53,7 @@ def create_backup():
         db_path = get_database_path()
         
         if not os.path.exists(db_path):
-            print(f"❌ Database non trovato: {db_path}")
+            print(f"[ERRORE] Database non trovato: {db_path}")
             return False
         
         backup_dir = get_backup_directory()
@@ -67,7 +67,7 @@ def create_backup():
         # Se esiste già un backup per questa settimana, sovrascrivilo
         # (in caso di esecuzione multipla nella stessa settimana)
         if backup_path.exists():
-            print(f"⚠️  Backup settimana {week_number} già esistente, sovrascrivo...")
+            print(f"[WARN] Backup settimana {week_number} già esistente, sovrascrivo...")
         
         # Copia il database
         shutil.copy2(db_path, backup_path)
@@ -75,21 +75,21 @@ def create_backup():
         # Verifica che il backup sia stato creato correttamente
         if backup_path.exists() and os.path.getsize(backup_path) > 0:
             size_mb = os.path.getsize(backup_path) / (1024 * 1024)
-            print(f"✅ Backup creato con successo!")
-            print(f"   📁 Percorso: {backup_path}")
-            print(f"   📅 Settimana: {week_number}/4")
-            print(f"   💾 Dimensione: {size_mb:.2f} MB")
+            print(f"[OK] Backup creato con successo!")
+            print(f"     Percorso: {backup_path}")
+            print(f"     Settimana: {week_number}/4")
+            print(f"     Dimensione: {size_mb:.2f} MB")
             
             # Pulisci backup vecchi (oltre 4 settimane)
             cleanup_old_backups(backup_dir)
             
             return True
         else:
-            print(f"❌ Errore: backup non creato correttamente")
+            print(f"[ERRORE] Backup non creato correttamente")
             return False
             
     except Exception as e:
-        print(f"❌ Errore durante il backup: {str(e)}")
+        print(f"[ERRORE] Errore durante il backup: {str(e)}")
         import traceback
         traceback.print_exc()
         return False
@@ -119,13 +119,13 @@ def cleanup_old_backups(backup_dir):
                     # Se più vecchio di 4 settimane, elimina
                     if weeks_diff >= 4:
                         backup_file.unlink()
-                        print(f"🗑️  Rimosso backup vecchio: {backup_file.name} ({weeks_diff} settimane fa)")
+                        print(f"[PULIZIA] Rimosso backup vecchio: {backup_file.name} ({weeks_diff} settimane fa)")
             except Exception as e:
-                print(f"⚠️  Errore processando {backup_file.name}: {e}")
+                print(f"[WARN] Errore processando {backup_file.name}: {e}")
                 continue
                 
     except Exception as e:
-        print(f"⚠️  Errore durante pulizia backup vecchi: {e}")
+        print(f"[WARN] Errore durante pulizia backup vecchi: {e}")
 
 def list_backups():
     """Lista tutti i backup disponibili"""
@@ -133,16 +133,16 @@ def list_backups():
     backup_files = sorted(backup_dir.glob('mekocrm_backup_week_*.db'), key=os.path.getmtime, reverse=True)
     
     if not backup_files:
-        print("📦 Nessun backup trovato")
+        print("[INFO] Nessun backup trovato")
         return
     
-    print(f"📦 Backup disponibili ({len(backup_files)}):\n")
+    print(f"[INFO] Backup disponibili ({len(backup_files)}):\n")
     for backup_file in backup_files:
         size_mb = os.path.getsize(backup_file) / (1024 * 1024)
         mtime = datetime.fromtimestamp(os.path.getmtime(backup_file))
-        print(f"   📁 {backup_file.name}")
-        print(f"      💾 {size_mb:.2f} MB")
-        print(f"      📅 {mtime.strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"  File: {backup_file.name}")
+        print(f"  Dimensione: {size_mb:.2f} MB")
+        print(f"  Data: {mtime.strftime('%Y-%m-%d %H:%M:%S')}")
         print()
 
 if __name__ == '__main__':
