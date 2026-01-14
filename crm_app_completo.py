@@ -8596,8 +8596,8 @@ def assistant():
                         ORDER BY COALESCE(o.amount, 0) DESC
                         LIMIT :limit
                     """)
-                    results = db.session.execute(query, {'limit': limit}).fetchall()
-                    for row in results:
+                    query_results_raw = db.session.execute(query, {'limit': limit}).fetchall()
+                    for row in query_results_raw:
                         query_results.append({
                             'id': row[0],
                             'name': row[1],
@@ -8688,17 +8688,17 @@ def assistant():
                         ORDER BY COALESCE(o.amount, 0) DESC
                         LIMIT 1
                     """)
-                    result = db.session.execute(query).fetchone()
-                    if result:
+                    result_row = db.session.execute(query).fetchone()
+                    if result_row:
                         query_results.append({
-                            'id': result[0],
-                            'name': result[1],
-                            'amount': result[2] or 0,
-                            'stage': result[3],
-                            'heat_level': result[4],
-                            'category': result[5],
-                            'account_name': result[6],
-                            'created_at': result[7].isoformat() if result[7] else None
+                            'id': result_row[0],
+                            'name': result_row[1],
+                            'amount': result_row[2] or 0,
+                            'stage': result_row[3],
+                            'heat_level': result_row[4],
+                            'category': result_row[5],
+                            'account_name': result_row[6],
+                            'created_at': result_row[7].isoformat() if result_row[7] and hasattr(result_row[7], 'isoformat') else (str(result_row[7]) if result_row[7] else None)
                         })
                 
                 elif query_type == 'opportunities_by_heat_level':
@@ -8764,8 +8764,8 @@ def assistant():
                         ORDER BY COALESCE(o.amount, 0) DESC
                         LIMIT :limit
                     """)
-                    results = db.session.execute(query, {'limit': limit}).fetchall()
-                    for row in results:
+                    query_results_raw = db.session.execute(query, {'limit': limit}).fetchall()
+                    for row in query_results_raw:
                         query_results.append({
                             'id': row[0],
                             'name': row[1],
