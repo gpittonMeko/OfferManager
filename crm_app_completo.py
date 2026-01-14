@@ -9061,56 +9061,80 @@ def assistant():
                 opp_id = opp.get('id', '')
                 # Link diretto all'opportunità nella dashboard (usa hash per navigazione SPA)
                 opp_link = f"#opportunities/{opp_id}" if opp_id else "#"
-                formatted_reply += f"\n\n📊 **Offerta più alta:**\n"
-                formatted_reply += f"- **Nome:** [{opp['name']}]({opp_link})\n"
-                formatted_reply += f"- **Valore:** €{opp['amount']:,.2f}\n"
-                formatted_reply += f"- **Account:** {opp['account_name'] or 'N/A'}\n"
-                formatted_reply += f"- **Stato:** {opp['stage']}\n"
-                formatted_reply += f"- **Calore:** {opp['heat_level'] or 'N/A'}\n"
+                formatted_reply += f"\n\n📊 Offerta più alta:\n\n"
+                formatted_reply += f"🎯 Nome: [{opp['name']}]({opp_link})\n"
+                formatted_reply += f"💰 Valore: €{opp['amount']:,.2f}\n"
+                if opp.get('account_name') and opp['account_name'] != 'N/A':
+                    formatted_reply += f"🏢 Account: {opp['account_name']}\n"
+                formatted_reply += f"📋 Stato: {opp['stage']}\n"
+                if opp.get('heat_level') and opp['heat_level'] != 'N/A':
+                    formatted_reply += f"🔥 Calore: {opp['heat_level']}\n"
+                formatted_reply += "\n"
             
             elif query_type in ['top_opportunities', 'opportunities_by_category', 'opportunities_by_date', 'opportunities_by_heat_level', 'account_opportunities', 'pipeline_opportunities']:
-                formatted_reply += f"\n\n📊 **Risultati ({len(query_results)}):**\n"
+                formatted_reply += f"\n\n📊 Risultati ({len(query_results)}):\n\n"
                 for i, opp in enumerate(query_results[:limit], 1):
                     opp_id = opp.get('id', '')
                     # Link diretto all'opportunità nella dashboard (usa hash per navigazione SPA)
                     opp_link = f"#opportunities/{opp_id}" if opp_id else "#"
-                    formatted_reply += f"\n{i}. **[{opp['name']}]({opp_link})**\n"
-                    formatted_reply += f"   - Valore: €{opp['amount']:,.2f}\n"
-                    formatted_reply += f"   - Account: {opp['account_name'] or 'N/A'}\n"
-                    formatted_reply += f"   - Stato: {opp['stage']}\n"
-                    if opp['heat_level']:
-                        formatted_reply += f"   - Calore: {opp['heat_level']}\n"
-                    if opp['category']:
-                        formatted_reply += f"   - Categoria: {opp['category']}\n"
+                    formatted_reply += f"{i}. [{opp['name']}]({opp_link})\n"
+                    formatted_reply += f"   💰 Valore: €{opp['amount']:,.2f}\n"
+                    if opp.get('account_name') and opp['account_name'] != 'N/A':
+                        formatted_reply += f"   🏢 Account: {opp['account_name']}\n"
+                    formatted_reply += f"   📋 Stato: {opp['stage']}\n"
+                    if opp.get('heat_level') and opp['heat_level'] != 'N/A':
+                        formatted_reply += f"   🔥 Calore: {opp['heat_level']}\n"
+                    if opp.get('category') and opp['category'] != 'N/A':
+                        formatted_reply += f"   📦 Categoria: {opp['category']}\n"
+                    formatted_reply += "\n"
             
             elif query_type == 'contact_phone':
-                formatted_reply += f"\n\n📞 **Numeri di telefono contatti ({len(query_results)}):**\n"
+                formatted_reply += f"\n\n📞 Numeri di telefono contatti ({len(query_results)}):\n\n"
                 for i, contact in enumerate(query_results, 1):
-                    formatted_reply += f"\n{i}. **{contact['first_name']} {contact['last_name']}**\n"
-                    formatted_reply += f"   - Telefono: {contact['phone']}\n"
-                    formatted_reply += f"   - Email: {contact['email']}\n"
-                    formatted_reply += f"   - Account: {contact['account_name']}\n"
-                    if contact['title'] != 'N/A':
-                        formatted_reply += f"   - Ruolo: {contact['title']}\n"
+                    contact_id = contact.get('id', '')
+                    contact_link = f"#contacts/{contact_id}" if contact_id else "#"
+                    formatted_reply += f"{i}. [{contact['first_name']} {contact['last_name']}]({contact_link})\n"
+                    formatted_reply += f"   📞 Telefono: {contact['phone']}\n"
+                    formatted_reply += f"   ✉️ Email: {contact['email']}\n"
+                    if contact['account_name'] and contact['account_name'] != 'N/A':
+                        formatted_reply += f"   🏢 Account: {contact['account_name']}\n"
+                    if contact['title'] and contact['title'] != 'N/A':
+                        formatted_reply += f"   💼 Ruolo: {contact['title']}\n"
+                    formatted_reply += "\n"
             
             elif query_type == 'account_phone':
-                formatted_reply += f"\n\n📞 **Numeri di telefono account ({len(query_results)}):**\n"
+                formatted_reply += f"\n\n📞 Numeri di telefono account ({len(query_results)}):\n\n"
                 for i, account in enumerate(query_results, 1):
-                    formatted_reply += f"\n{i}. **{account['name']}**\n"
-                    formatted_reply += f"   - Telefono: {account['phone']}\n"
-                    if account['website'] != 'N/A':
-                        formatted_reply += f"   - Website: {account['website']}\n"
-                    if account['industry'] != 'N/A':
-                        formatted_reply += f"   - Settore: {account['industry']}\n"
+                    account_id = account.get('id', '')
+                    account_link = f"#accounts/{account_id}" if account_id else "#"
+                    formatted_reply += f"{i}. [{account['name']}]({account_link})\n"
+                    formatted_reply += f"   📞 Telefono: {account['phone']}\n"
+                    if account['website'] and account['website'] != 'N/A':
+                        formatted_reply += f"   🌐 Website: {account['website']}\n"
+                    if account['industry'] and account['industry'] != 'N/A':
+                        formatted_reply += f"   🏭 Settore: {account['industry']}\n"
+                    formatted_reply += "\n"
             
             elif query_type == 'phone_by_entity':
-                formatted_reply += f"\n\n📞 **Entità con questo numero ({len(query_results)}):**\n"
+                formatted_reply += f"\n\n📞 Entità con questo numero ({len(query_results)}):\n\n"
                 for i, entity in enumerate(query_results, 1):
                     entity_type_name = {'account': 'Account', 'contact': 'Contatto', 'lead': 'Lead'}.get(entity['entity_type'], entity['entity_type'])
-                    formatted_reply += f"\n{i}. **{entity_type_name}: {entity['name']}**\n"
-                    formatted_reply += f"   - Telefono: {entity['phone']}\n"
+                    entity_id = entity.get('id', '')
+                    
+                    if entity['entity_type'] == 'account':
+                        entity_link = f"#accounts/{entity_id}" if entity_id else "#"
+                    elif entity['entity_type'] == 'contact':
+                        entity_link = f"#contacts/{entity_id}" if entity_id else "#"
+                    elif entity['entity_type'] == 'lead':
+                        entity_link = f"#leads/{entity_id}" if entity_id else "#"
+                    else:
+                        entity_link = "#"
+                    
+                    formatted_reply += f"{i}. {entity_type_name}: [{entity['name']}]({entity_link})\n"
+                    formatted_reply += f"   📞 Telefono: {entity['phone']}\n"
                     if entity.get('contact_name') and entity['contact_name'] != 'N/A':
-                        formatted_reply += f"   - Contatto: {entity['contact_name']}\n"
+                        formatted_reply += f"   👤 Contatto: {entity['contact_name']}\n"
+                    formatted_reply += "\n"
     
     # Se ci sono azioni che richiedono approvazione, aggiungi dettagli alla risposta
     if pending_approvals:

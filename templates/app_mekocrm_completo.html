@@ -8865,9 +8865,94 @@
             
             const message = document.createElement('div');
             message.className = `assistant-message ${role}`;
-            message.textContent = text;
+            if (role === 'bot') {
+                // Per i messaggi del bot, permetti HTML (già sanitizzato)
+                message.innerHTML = text;
+            } else {
+                // Per i messaggi utente, solo testo
+                message.textContent = text;
+            }
             targetContainer.appendChild(message);
             targetContainer.scrollTop = targetContainer.scrollHeight;
+        }
+        
+        // Gestisce i link cliccabili dall'assistente per navigazione SPA
+        function handleAssistantLink(hash) {
+            // hash format: "opportunities/123" o "accounts/456" o "contacts/789" o "leads/101"
+            const parts = hash.split('/');
+            if (parts.length === 2) {
+                const [view, id] = parts;
+                // Cambia vista
+                if (view === 'opportunities') {
+                    const navItem = document.querySelector('[data-target="opportunities-view"]');
+                    if (navItem) {
+                        navItem.click();
+                        setTimeout(() => {
+                            loadOpportunities();
+                            // Evidenzia l'opportunità
+                            setTimeout(() => {
+                                const row = document.querySelector(`[data-opp-id="${id}"]`);
+                                if (row) {
+                                    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                    row.style.background = '#fef3c7';
+                                    setTimeout(() => row.style.background = '', 2000);
+                                }
+                            }, 500);
+                        }, 100);
+                    }
+                } else if (view === 'accounts') {
+                    const navItem = document.querySelector('[data-target="accounts-view"]');
+                    if (navItem) {
+                        navItem.click();
+                        setTimeout(() => {
+                            loadAccounts();
+                            // Evidenzia l'account
+                            setTimeout(() => {
+                                const row = document.querySelector(`[data-account-id="${id}"]`);
+                                if (row) {
+                                    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                    row.style.background = '#fef3c7';
+                                    setTimeout(() => row.style.background = '', 2000);
+                                }
+                            }, 500);
+                        }, 100);
+                    }
+                } else if (view === 'contacts') {
+                    const navItem = document.querySelector('[data-target="contacts-view"]');
+                    if (navItem) {
+                        navItem.click();
+                        setTimeout(() => {
+                            loadContacts();
+                            // Evidenzia il contatto
+                            setTimeout(() => {
+                                const row = document.querySelector(`[data-contact-id="${id}"]`);
+                                if (row) {
+                                    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                    row.style.background = '#fef3c7';
+                                    setTimeout(() => row.style.background = '', 2000);
+                                }
+                            }, 500);
+                        }, 100);
+                    }
+                } else if (view === 'leads') {
+                    const navItem = document.querySelector('[data-target="leads-view"]');
+                    if (navItem) {
+                        navItem.click();
+                        setTimeout(() => {
+                            loadLeads();
+                            // Evidenzia il lead
+                            setTimeout(() => {
+                                const row = document.querySelector(`[data-lead-id="${id}"]`);
+                                if (row) {
+                                    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                    row.style.background = '#fef3c7';
+                                    setTimeout(() => row.style.background = '', 2000);
+                                }
+                            }, 500);
+                        }, 100);
+                    }
+                }
+            }
         }
 
         async function sendAssistantMessage() {
@@ -8920,8 +9005,22 @@
                 const data = await res.json();
                 const reply = data.reply || 'Operazione completata.';
                 
-                // Formatta reply con markdown base (bold, liste)
-                const formattedReply = reply.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+                // Formatta reply: converti markdown in HTML e gestisci link
+                let formattedReply = reply;
+                // Converti link markdown [testo](url) in link HTML cliccabili
+                formattedReply = formattedReply.replace(/\[([^\]]+)\]\(([^)]+)\)/g, function(match, text, url) {
+                    // Se è un link hash (#), aggiungi onclick per navigazione SPA
+                    if (url.startsWith('#')) {
+                        const hash = url.substring(1);
+                        return `<a href="${url}" onclick="handleAssistantLink('${hash}'); return false;" style="color: #3b82f6; text-decoration: underline; cursor: pointer;">${text}</a>`;
+                    }
+                    return `<a href="${url}" target="_blank" style="color: #3b82f6; text-decoration: underline;">${text}</a>`;
+                });
+                // Converti **bold** in <strong>
+                formattedReply = formattedReply.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+                // Converti newline in <br> ma preserva le liste
+                formattedReply = formattedReply.replace(/\n/g, '<br>');
+                
                 appendAssistantMessage('bot', formattedReply, messagesContainer);
                 
                 // Se ci sono azioni che richiedono approvazione, mostra pulsanti
