@@ -8257,7 +8257,10 @@ def assistant():
         "IMPORTANT: For update_data and delete_data, set requires_approval: true in the action. "
         "Use standard stage values: Qualification, Needs Analysis, Value Proposition, Id. Decision Makers, "
         "Perception Analysis, Proposal/Price Quote, Negotiation/Review, Closed Won, Closed Lost. "
-        "For names, be tolerant of typos and partial matches - use the closest match you can find."
+        "For names, be tolerant of typos and partial matches - use the closest match you can find. "
+        "IMPORTANT: When user asks about 'grafico', 'andamento pipeline', 'trend', 'ultimi X mesi per categoria', "
+        "or wants aggregated data by month and category, use query_type 'pipeline_trend' with months parameter (default 6). "
+        "Use 'pipeline_opportunities' only when user wants a list of individual opportunities, not aggregated data."
     )
 
     # Log della richiesta
@@ -8865,7 +8868,13 @@ def assistant():
                     query = text("""
                         SELECT 
                             strftime('%Y-%m', o.created_at) as month,
-                            o.supplier_category as category,
+                            CASE 
+                                WHEN o.supplier_category LIKE '%UR%' OR o.supplier_category LIKE '%Universal Robot%' THEN 'UR'
+                                WHEN o.supplier_category LIKE '%MiR%' OR o.supplier_category LIKE '%MIR%' THEN 'MiR'
+                                WHEN o.supplier_category LIKE '%Unitree%' THEN 'Unitree'
+                                WHEN o.supplier_category IS NULL OR o.supplier_category = '' THEN 'Altri'
+                                ELSE o.supplier_category
+                            END as category,
                             SUM(COALESCE(o.amount, 0)) as total_value,
                             COUNT(*) as count
                         FROM opportunities o
