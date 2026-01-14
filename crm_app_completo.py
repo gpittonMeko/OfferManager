@@ -9059,7 +9059,8 @@ def assistant():
             if query_type == 'highest_value_opportunity' and query_results:
                 opp = query_results[0]
                 opp_id = opp.get('id', '')
-                opp_link = f"https://offermanager.meko.it/opportunities/{opp_id}" if opp_id else "#"
+                # Link diretto all'opportunità nella dashboard (usa hash per navigazione SPA)
+                opp_link = f"#opportunities/{opp_id}" if opp_id else "#"
                 formatted_reply += f"\n\n📊 **Offerta più alta:**\n"
                 formatted_reply += f"- **Nome:** [{opp['name']}]({opp_link})\n"
                 formatted_reply += f"- **Valore:** €{opp['amount']:,.2f}\n"
@@ -9071,7 +9072,8 @@ def assistant():
                 formatted_reply += f"\n\n📊 **Risultati ({len(query_results)}):**\n"
                 for i, opp in enumerate(query_results[:limit], 1):
                     opp_id = opp.get('id', '')
-                    opp_link = f"https://offermanager.meko.it/opportunities/{opp_id}" if opp_id else "#"
+                    # Link diretto all'opportunità nella dashboard (usa hash per navigazione SPA)
+                    opp_link = f"#opportunities/{opp_id}" if opp_id else "#"
                     formatted_reply += f"\n{i}. **[{opp['name']}]({opp_link})**\n"
                     formatted_reply += f"   - Valore: €{opp['amount']:,.2f}\n"
                     formatted_reply += f"   - Account: {opp['account_name'] or 'N/A'}\n"
