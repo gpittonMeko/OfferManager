@@ -5025,36 +5025,36 @@
             }
             
             if (currentOppTab !== 'all') {
-                // Filtri per calore (priorità)
+                // Filtri per calore (priorità) - usa filtered invece di allOpportunities per rispettare filtro account
                 if (currentOppTab === 'calda') {
-                    filtered = allOpportunities.filter(o => (o.heat_level || 'tiepida') === 'calda' && o.stage !== 'Closed Won' && o.stage !== 'Closed Lost');
+                    filtered = filtered.filter(o => (o.heat_level || 'tiepida') === 'calda' && o.stage !== 'Closed Won' && o.stage !== 'Closed Lost');
                 } else if (currentOppTab === 'tiepida') {
-                    filtered = allOpportunities.filter(o => o.heat_level === 'tiepida' && o.stage !== 'Closed Won' && o.stage !== 'Closed Lost');
+                    filtered = filtered.filter(o => o.heat_level === 'tiepida' && o.stage !== 'Closed Won' && o.stage !== 'Closed Lost');
                 } else if (currentOppTab === 'fredda_speranza') {
-                    filtered = allOpportunities.filter(o => (o.heat_level || 'tiepida') === 'fredda_speranza' && o.stage !== 'Closed Won' && o.stage !== 'Closed Lost');
+                    filtered = filtered.filter(o => (o.heat_level || 'tiepida') === 'fredda_speranza' && o.stage !== 'Closed Won' && o.stage !== 'Closed Lost');
                 } else if (currentOppTab === 'fredda_gelo') {
-                    filtered = allOpportunities.filter(o => (o.heat_level || 'tiepida') === 'fredda_gelo' && o.stage !== 'Closed Won' && o.stage !== 'Closed Lost');
+                    filtered = filtered.filter(o => (o.heat_level || 'tiepida') === 'fredda_gelo' && o.stage !== 'Closed Won' && o.stage !== 'Closed Lost');
                 } else if (currentOppTab === 'da_categorizzare') {
-                    filtered = allOpportunities.filter(o => (!o.heat_level || o.heat_level === 'da_categorizzare' || o.heat_level === null || o.heat_level === '') && o.stage !== 'Closed Won' && o.stage !== 'Closed Lost');
+                    filtered = filtered.filter(o => (!o.heat_level || o.heat_level === 'da_categorizzare' || o.heat_level === null || o.heat_level === '') && o.stage !== 'Closed Won' && o.stage !== 'Closed Lost');
                 }
-                // Filtri per categoria prodotto (secondari)
+                // Filtri per categoria prodotto (secondari) - usa filtered invece di allOpportunities
                 else if (currentOppTab === 'Altri') {
-                    filtered = allOpportunities.filter(o => {
+                    filtered = filtered.filter(o => {
                         const cat = (o.supplier_category || '').toUpperCase();
                         return !cat.includes('UR') && !cat.includes('UNIVERSAL') && !cat.includes('MIR') && !cat.includes('UNITREE') && o.stage !== 'Closed Won' && o.stage !== 'Closed Lost';
                     });
                 } else if (currentOppTab === 'UR') {
-                    filtered = allOpportunities.filter(o => {
+                    filtered = filtered.filter(o => {
                         const cat = (o.supplier_category || '').toUpperCase();
                         return (cat.includes('UNIVERSAL') || cat.includes('UR')) && o.stage !== 'Closed Won' && o.stage !== 'Closed Lost';
                     });
                 } else if (currentOppTab === 'MIR') {
-                    filtered = allOpportunities.filter(o => {
+                    filtered = filtered.filter(o => {
                         const cat = (o.supplier_category || '').toUpperCase();
                         return cat.includes('MIR') && o.stage !== 'Closed Won' && o.stage !== 'Closed Lost';
                     });
                 } else if (currentOppTab === 'Unitree') {
-                    filtered = allOpportunities.filter(o => {
+                    filtered = filtered.filter(o => {
                         const cat = (o.supplier_category || '').toUpperCase();
                         const hasUnitree = cat.includes('UNITREE');
                         const isOpen = o.stage !== 'Closed Won' && o.stage !== 'Closed Lost';
@@ -5070,9 +5070,9 @@
                 }
                 // Filtri per opportunità chiuse
                 else if (currentOppTab === 'closed_won') {
-                    filtered = allOpportunities.filter(o => o.stage === 'Closed Won');
+                    filtered = filtered.filter(o => o.stage === 'Closed Won');
                 } else if (currentOppTab === 'closed_lost') {
-                    filtered = allOpportunities.filter(o => o.stage === 'Closed Lost');
+                    filtered = filtered.filter(o => o.stage === 'Closed Lost');
                 }
             } else {
                 // Mostra tutte le opportunità (incluse chiuse)
@@ -6636,8 +6636,10 @@
         async function completeMyTask(oppId, taskId) {
             try {
                 let res;
-                if (oppId && oppId !== 'null') {
-                    res = await fetch(`/api/opportunities/${oppId}/tasks/${taskId}`, {
+                const oppIdNum = oppId === 'null' || oppId === null || oppId === 0 ? null : parseInt(oppId);
+                
+                if (oppIdNum && oppIdNum > 0) {
+                    res = await fetch(`/api/opportunities/${oppIdNum}/tasks/${taskId}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ is_completed: true })
@@ -6649,13 +6651,25 @@
                         body: JSON.stringify({ is_completed: true })
                     });
                 }
+                
+                if (!res.ok) {
+                    const errorData = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+                    throw new Error(errorData.error || `HTTP ${res.status}`);
+                }
+                
                 const data = await res.json();
                 if (data.success) {
+                    // Ricarica le attività
                     await loadMyTasks();
+                    // Se siamo nella vista opportunità, ricarica anche quelle attività
+                    if (oppIdNum && document.getElementById('opportunity-tasks-list')) {
+                        await loadOpportunityTasks(oppIdNum);
+                    }
                 } else {
                     alert('Errore: ' + (data.error || 'Unknown'));
                 }
             } catch (err) {
+                console.error('Errore completamento task:', err);
                 alert('Errore: ' + err.message);
             }
         }

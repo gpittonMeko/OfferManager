@@ -4306,9 +4306,53 @@ def sync_pricebook():
         return jsonify({'error': 'Non autorizzato'}), 401
     
     try:
-        from price_loader import load_price_catalog
+        import sys
+        utils_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'utils')
+        if utils_path not in sys.path:
+            sys.path.insert(0, utils_path)
+        try:
+            from price_loader import load_price_catalog
+        except ImportError:
+            # Fallback: prova a caricare dalla cartella listini direttamente
+            from pdf_parser import PDFPricelistParser
+            pricelist_dir = os.path.join(os.path.dirname(__file__), 'listini')
+            if not os.path.exists(pricelist_dir):
+                return jsonify({'error': 'Cartella listini non trovata'}), 404
+            
+            parser = PDFPricelistParser()
+            pdf_files = [os.path.join(pricelist_dir, f) for f in os.listdir(pricelist_dir) if f.endswith('.pdf')]
+            if not pdf_files:
+                return jsonify({'error': 'Nessun file PDF trovato nella cartella listini'}), 404
+            
+            # Carica tutti i PDF
+            for pdf_path in pdf_files:
+                try:
+                    products = parser.parse(pdf_path)
+                    print(f"Caricati {len(products)} prodotti da {os.path.basename(pdf_path)}")
+                except Exception as e:
+                    print(f"Errore parsing {pdf_path}: {e}")
+            
+            # Converti prodotti in formato catalog
+            all_products = parser.get_all_products()
+            catalog = {}
+            for product in all_products:
+                catalog[product.code] = type('Entry', (), {
+                    'name': product.name,
+                    'description': product.description or '',
+                    'category': product.category or '',
+                    'family': product.family or '',
+                    'price_levels': product.price_levels or {},
+                    'sources': {k: 'pdf' for k in product.price_levels.keys()} if product.price_levels else {}
+                })()
+            
+            # Usa catalog come se fosse da load_price_catalog
+            catalog_dict = catalog
         
-        catalog = load_price_catalog()
+        # Se load_price_catalog è disponibile, usalo, altrimenti usa catalog_dict dal fallback
+        if 'catalog_dict' not in locals():
+            catalog = load_price_catalog()
+        else:
+            catalog = catalog_dict
         
         # Sincronizza nel database
         for code, entry in catalog.items():
@@ -4399,11 +4443,50 @@ def download_offer_pdf(offer_id):
     
     offer = OfferDocument.query.get_or_404(offer_id)
     
-    if not offer.pdf_path or not os.path.exists(offer.pdf_path):
-        return jsonify({'error': 'PDF non trovato'}), 404
+    if not offer.pdf_path:
+        return jsonify({'error': 'PDF non trovato - percorso non configurato'}), 404
+    
+    # Su server remoto, prova percorsi multipli
+    pdf_path = offer.pdf_path
+    
+    # Se il percorso non esiste, prova percorsi alternativi
+    if not os.path.exists(pdf_path):
+        # Prova percorso relativo alla cartella dell'offerta
+        if offer.folder_path and os.path.exists(offer.folder_path):
+            folder_pdf = os.path.join(offer.folder_path, os.path.basename(pdf_path))
+            if os.path.exists(folder_pdf):
+                pdf_path = folder_pdf
+            else:
+                # Cerca qualsiasi PDF nella cartella
+                try:
+                    pdf_files = [f for f in os.listdir(offer.folder_path) if f.lower().endswith('.pdf')]
+                    if pdf_files:
+                        pdf_path = os.path.join(offer.folder_path, pdf_files[0])
+                except:
+                    pass
+        
+        # Se ancora non esiste, prova percorso server remoto
+        if not os.path.exists(pdf_path):
+            import platform
+            if platform.system() != 'Windows':
+                # Su Linux, prova percorso montato
+                server_path = pdf_path.replace('K:\\', '/mnt/k/').replace('K:/', '/mnt/k/').replace('\\', '/')
+                if os.path.exists(server_path):
+                    pdf_path = server_path
+    
+    if not os.path.exists(pdf_path):
+        return jsonify({
+            'error': f'PDF non trovato sul server',
+            'expected_path': offer.pdf_path,
+            'tried_path': pdf_path,
+            'folder_path': offer.folder_path
+        }), 404
     
     # Apri nel browser invece di forzare il download
-    return send_file(offer.pdf_path, as_attachment=False, mimetype='application/pdf')
+    try:
+        return send_file(pdf_path, as_attachment=False, mimetype='application/pdf')
+    except Exception as e:
+        return jsonify({'error': f'Errore lettura PDF: {str(e)}'}), 500
 
 
 @app.route('/api/offers/<int:offer_id>/docx', methods=['GET'])
@@ -4414,10 +4497,49 @@ def download_offer_docx(offer_id):
     
     offer = OfferDocument.query.get_or_404(offer_id)
     
-    if not offer.docx_path or not os.path.exists(offer.docx_path):
-        return jsonify({'error': 'DOCX non trovato'}), 404
+    if not offer.docx_path:
+        return jsonify({'error': 'DOCX non trovato - percorso non configurato'}), 404
     
-    return send_file(offer.docx_path, as_attachment=True, mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+    # Su server remoto, prova percorsi multipli
+    docx_path = offer.docx_path
+    
+    # Se il percorso non esiste, prova percorsi alternativi
+    if not os.path.exists(docx_path):
+        # Prova percorso relativo alla cartella dell'offerta
+        if offer.folder_path and os.path.exists(offer.folder_path):
+            folder_docx = os.path.join(offer.folder_path, os.path.basename(docx_path))
+            if os.path.exists(folder_docx):
+                docx_path = folder_docx
+            else:
+                # Cerca qualsiasi DOCX nella cartella
+                try:
+                    docx_files = [f for f in os.listdir(offer.folder_path) if f.lower().endswith('.docx')]
+                    if docx_files:
+                        docx_path = os.path.join(offer.folder_path, docx_files[0])
+                except:
+                    pass
+        
+        # Se ancora non esiste, prova percorso server remoto
+        if not os.path.exists(docx_path):
+            import platform
+            if platform.system() != 'Windows':
+                # Su Linux, prova percorso montato
+                server_path = docx_path.replace('K:\\', '/mnt/k/').replace('K:/', '/mnt/k/').replace('\\', '/')
+                if os.path.exists(server_path):
+                    docx_path = server_path
+    
+    if not os.path.exists(docx_path):
+        return jsonify({
+            'error': f'DOCX non trovato sul server',
+            'expected_path': offer.docx_path,
+            'tried_path': docx_path,
+            'folder_path': offer.folder_path
+        }), 404
+    
+    try:
+        return send_file(docx_path, as_attachment=True, mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+    except Exception as e:
+        return jsonify({'error': f'Errore lettura DOCX: {str(e)}'}), 500
 
 
 @app.route('/api/offers/generate', methods=['POST'])
@@ -4449,6 +4571,10 @@ def generate_offer():
         
         # Importa generatore
         try:
+            import sys
+            utils_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'utils')
+            if utils_path not in sys.path:
+                sys.path.insert(0, utils_path)
             from offer_generator import OfferGenerator
             import tempfile
             import platform
@@ -4508,6 +4634,21 @@ def generate_offer():
             if not docx_path:
                 return jsonify({'error': 'Errore nel salvataggio offerta'}), 500
             
+            # Ottieni folder_path dalla cartella creata
+            folder_path = os.path.dirname(docx_path) if docx_path else None
+            
+            # Se opportunity_id è fornito, aggiorna anche folder_path dell'opportunità
+            if opportunity_id:
+                opp = load_opportunity_safe(opportunity_id)
+                if opp:
+                    # Aggiorna folder_path dell'opportunità se non esiste o se è più recente
+                    if not opp.folder_path or (folder_path and os.path.exists(folder_path)):
+                        opp.folder_path = folder_path
+                    opp.description = f"Offerta generata: {offer_info['offer_number']}\n{opp.description or ''}"
+                    # Aggiorna anche l'amount se non è impostato
+                    if opp.amount == 0.0 and offer_info.get('total', 0) > 0:
+                        opp.amount = offer_info['total']
+            
             # Salva offerta nel database
             offer_doc = OfferDocument(
                 number=offer_info['offer_number'],
@@ -4516,22 +4657,12 @@ def generate_offer():
                 description=f"Prodotti: {', '.join([p.get('name', '') for p in offer_info.get('products', [])[:3]])}",
                 docx_path=docx_path,
                 pdf_path=pdf_path,
-                folder_path=os.path.dirname(docx_path) if docx_path else None,
+                folder_path=folder_path,
                 generated_from_nlp=True,
                 opportunity_id=opportunity_id if opportunity_id else None,
                 owner_id=user_id
             )
             db.session.add(offer_doc)
-            
-            # Se opportunity_id è fornito, aggiorna l'opportunità
-            if opportunity_id:
-                opp = load_opportunity_safe(opportunity_id)
-                if opp:
-                    opp.description = f"Offerta generata: {offer_info['offer_number']}\n{opp.description or ''}"
-                    # Aggiorna anche l'amount se non è impostato
-                    if opp.amount == 0.0 and offer_info.get('total', 0) > 0:
-                        opp.amount = offer_info['total']
-            
             db.session.commit()
             
             return jsonify({
