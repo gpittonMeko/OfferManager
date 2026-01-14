@@ -8583,8 +8583,7 @@ def assistant():
             query_results = []
             
             try:
-            
-            if query_type == 'top_opportunities':
+                if query_type == 'top_opportunities':
                 # Top opportunità per valore
                 from sqlalchemy import text
                 query = text("""
