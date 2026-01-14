@@ -8221,8 +8221,9 @@ def assistant():
         "optional due_date (YYYY-MM-DD), optional assigned_to_id (user ID) or assigned_to_name (username like 'giovanni', 'mauro', 'davide', 'filippo'), "
         "and opportunity_id/opportunity_name or account_id/account_name. "
         "For query_data: provide query_type (top_opportunities, opportunities_by_category, opportunities_by_date, "
-        "highest_value_opportunity, opportunities_by_heat_level, account_opportunities) and optional filters like "
+        "highest_value_opportunity, opportunities_by_heat_level, account_opportunities, pipeline_opportunities) and optional filters like "
         "category (UR, MiR, Unitree, Altri), heat_level, limit (number), month (YYYY-MM), account_name. "
+        "pipeline_opportunities returns all active opportunities (not Closed Won/Lost). "
         "For update_data: provide update_type (opportunity, account, task), entity_id or entity_name, "
         "and fields to update (e.g., {amount: 50000, stage: 'Negotiation/Review'}). "
         "For delete_data: provide delete_type (opportunity, account, task), entity_id or entity_name. "
@@ -8581,6 +8582,8 @@ def assistant():
             
             query_results = []
             
+            try:
+            
             if query_type == 'top_opportunities':
                 # Top opportunità per valore
                 from sqlalchemy import text
@@ -8636,15 +8639,6 @@ def assistant():
                 month = action.get('month', '').strip()
                 category = action.get('category', '').strip()
                 if month:
-                    query = text("""
-                        SELECT o.id, o.name, o.amount, o.stage, o.heat_level, o.supplier_category,
-                               a.name as account_name, o.created_at
-                        FROM opportunities o
-                        LEFT JOIN accounts a ON o.account_id = a.id
-                        WHERE strftime('%Y-%m', o.created_at) = :month
-                          AND o.stage NOT IN ('Closed Won', 'Closed Lost')
-                    """)
-                    params = {'month': month, 'limit': limit}
                     if category:
                         query = text("""
                             SELECT o.id, o.name, o.amount, o.stage, o.heat_level, o.supplier_category,
@@ -8657,9 +8651,19 @@ def assistant():
                             ORDER BY COALESCE(o.amount, 0) DESC
                             LIMIT :limit
                         """)
-                        params['category'] = f'%{category}%'
+                        params = {'month': month, 'category': f'%{category}%', 'limit': limit}
                     else:
-                        query = text(query.text + " ORDER BY COALESCE(o.amount, 0) DESC LIMIT :limit")
+                        query = text("""
+                            SELECT o.id, o.name, o.amount, o.stage, o.heat_level, o.supplier_category,
+                                   a.name as account_name, o.created_at
+                            FROM opportunities o
+                            LEFT JOIN accounts a ON o.account_id = a.id
+                            WHERE strftime('%Y-%m', o.created_at) = :month
+                              AND o.stage NOT IN ('Closed Won', 'Closed Lost')
+                            ORDER BY COALESCE(o.amount, 0) DESC
+                            LIMIT :limit
+                        """)
+                        params = {'month': month, 'limit': limit}
                     
                     results = db.session.execute(query, params).fetchall()
                     for row in results:
@@ -8749,15 +8753,43 @@ def assistant():
                             'created_at': row[7].isoformat() if row[7] else None
                         })
             
-            if query_results:
-                results.append({
-                    'type': action_type,
-                    'query_type': query_type,
-                    'results': query_results,
-                    'count': len(query_results)
-                })
-            else:
-                errors.append({'type': action_type, 'error': f'Nessun risultato trovato per query_type: {query_type}'})
+            elif query_type == 'pipeline_opportunities':
+                # Tutte le opportunità attive nella pipeline (non chiuse)
+                query = text("""
+                    SELECT o.id, o.name, o.amount, o.stage, o.heat_level, o.supplier_category,
+                           a.name as account_name, o.created_at
+                    FROM opportunities o
+                    LEFT JOIN accounts a ON o.account_id = a.id
+                    WHERE o.stage NOT IN ('Closed Won', 'Closed Lost')
+                    ORDER BY COALESCE(o.amount, 0) DESC
+                    LIMIT :limit
+                """)
+                results = db.session.execute(query, {'limit': limit}).fetchall()
+                for row in results:
+                    query_results.append({
+                        'id': row[0],
+                        'name': row[1],
+                        'amount': row[2] or 0,
+                        'stage': row[3],
+                        'heat_level': row[4],
+                        'category': row[5],
+                        'account_name': row[6],
+                        'created_at': row[7].isoformat() if row[7] else None
+                    })
+            
+                if query_results:
+                    results.append({
+                        'type': action_type,
+                        'query_type': query_type,
+                        'results': query_results,
+                        'count': len(query_results)
+                    })
+                else:
+                    errors.append({'type': action_type, 'error': f'Nessun risultato trovato per query_type: {query_type}'})
+            except Exception as e:
+                errors.append({'type': action_type, 'error': f'Errore durante query {query_type}: {str(e)}'})
+                import traceback
+                print(f"Errore query_data: {traceback.format_exc()}")
         
         elif action_type == 'update_data':
             # Richiede approvazione - non esegue subito
@@ -8903,7 +8935,7 @@ def assistant():
                 formatted_reply += f"- **Stato:** {opp['stage']}\n"
                 formatted_reply += f"- **Calore:** {opp['heat_level'] or 'N/A'}\n"
             
-            elif query_type in ['top_opportunities', 'opportunities_by_category', 'opportunities_by_date', 'opportunities_by_heat_level', 'account_opportunities']:
+            elif query_type in ['top_opportunities', 'opportunities_by_category', 'opportunities_by_date', 'opportunities_by_heat_level', 'account_opportunities', 'pipeline_opportunities']:
                 formatted_reply += f"\n\n📊 **Risultati ({len(query_results)}):**\n"
                 for i, opp in enumerate(query_results[:limit], 1):
                     formatted_reply += f"\n{i}. **{opp['name']}**\n"
