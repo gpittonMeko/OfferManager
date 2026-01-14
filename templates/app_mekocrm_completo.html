@@ -8876,12 +8876,27 @@
             const actionsDiv = document.getElementById('assistant-actions');
             
             if (!input || assistantBusy) return;
-            const message = input.value.trim();
+            const message = input.value.trim().toLowerCase();
             if (!message) return;
+            
+            // Controlla se è una risposta di approvazione/annullamento
+            if (window.lastAssistantLogId && window.pendingApprovalsCount) {
+                if (message === 'approva' || message === 'sì' || message === 'si' || message === 'ok' || message === 'yes') {
+                    // Approva la prima azione pendente
+                    await approveAssistantAction(window.lastAssistantLogId, 0);
+                    input.value = '';
+                    return;
+                } else if (message === 'annulla' || message === 'no' || message === 'cancella') {
+                    cancelAssistantApproval();
+                    input.value = '';
+                    return;
+                }
+            }
+            
             assistantBusy = true;
             
             // Aggiungi messaggio utente
-            appendAssistantMessage('user', message, messagesContainer);
+            appendAssistantMessage('user', input.value.trim(), messagesContainer);
             input.value = '';
             
             // Apri chat se chiusa
@@ -8911,18 +8926,25 @@
                 
                 // Se ci sono azioni che richiedono approvazione, mostra pulsanti
                 if (data.requires_approval && data.pending_approvals && data.pending_approvals.length > 0) {
-                    let approvalHtml = '<div style="margin-top: 12px; padding: 16px; background: #fef3c7; border-radius: 8px; border-left: 4px solid #f59e0b;"><strong style="font-size: 13px; color: #92400e;">⚠️ AZIONI IN ATTESA DI APPROVAZIONE:</strong><div style="margin-top: 12px; display: flex; gap: 8px;">';
+                    window.lastAssistantLogId = data.log_id;
+                    window.pendingApprovalsCount = data.pending_approvals.length;
+                    
+                    let approvalHtml = '<div style="margin-top: 12px; padding: 16px; background: #fef3c7; border-radius: 8px; border-left: 4px solid #f59e0b;"><strong style="font-size: 13px; color: #92400e;">⚠️ AZIONI IN ATTESA DI APPROVAZIONE:</strong><div style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap;">';
                     
                     data.pending_approvals.forEach((approval, index) => {
                         approvalHtml += `<button onclick="approveAssistantAction(${data.log_id || 0}, ${index})" style="padding: 8px 16px; background: #10b981; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px;">✅ Approva ${index + 1}</button>`;
                     });
                     
                     approvalHtml += `<button onclick="cancelAssistantApproval()" style="padding: 8px 16px; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px;">❌ Annulla</button>`;
-                    approvalHtml += '</div></div>';
+                    approvalHtml += '</div><div style="margin-top: 8px; font-size: 11px; color: #92400e;">💡 Puoi anche scrivere "approva" o "annulla" nella chat</div></div>';
                     
                     if (actionsDiv) {
                         actionsDiv.innerHTML = approvalHtml;
                     }
+                } else {
+                    // Reset approvazioni pendenti
+                    window.lastAssistantLogId = null;
+                    window.pendingApprovalsCount = 0;
                 }
                 
                 // Mostra azioni eseguite
@@ -9028,6 +9050,10 @@
                     loadAccounts(currentAccountsPage);
                     loadMyTasks();
                     loadDashboard();
+                    
+                    // Reset approvazioni pendenti
+                    window.lastAssistantLogId = null;
+                    window.pendingApprovalsCount = 0;
                 } else {
                     appendAssistantMessage('bot', '❌ Errore durante l\'esecuzione dell\'azione', messagesContainer);
                 }
@@ -9046,6 +9072,10 @@
             
             appendAssistantMessage('user', '❌ Annullo', messagesContainer);
             appendAssistantMessage('bot', '✅ Azione annullata. Nessuna modifica è stata effettuata.', messagesContainer);
+            
+            // Reset approvazioni pendenti
+            window.lastAssistantLogId = null;
+            window.pendingApprovalsCount = 0;
             
             if (actionsDiv) {
                 actionsDiv.innerHTML = '<div style="padding: 12px; background: #fee2e2; border-radius: 8px; border-left: 4px solid #ef4444; color: #991b1b; font-size: 12px;">❌ Azione annullata</div>';
