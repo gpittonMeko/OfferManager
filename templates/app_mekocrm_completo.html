@@ -9321,13 +9321,27 @@
             const toggle = document.getElementById('assistant-chat-toggle');
             if (widget) {
                 widget.classList.add('open');
-                if (toggle) toggle.classList.add('hidden');
+                if (toggle) {
+                    toggle.classList.add('hidden');
+                    toggle.classList.remove('has-suggestions');
+                }
                 assistantChatOpen = true;
+                
+                // Aggiorna suggerimenti quando si apre
+                updateWelcomeMessage();
+                rotateSuggestions();
+                
                 // Scrolla in basso
                 const messages = document.getElementById('assistant-chat-messages');
                 if (messages) {
                     setTimeout(() => messages.scrollTop = messages.scrollHeight, 100);
                 }
+                
+                // Focus sull'input
+                setTimeout(() => {
+                    const input = document.getElementById('assistant-chat-input');
+                    if (input) input.focus();
+                }, 300);
             }
         }
         
@@ -9338,6 +9352,15 @@
                 widget.classList.remove('open');
                 if (toggle) toggle.classList.remove('hidden');
                 assistantChatOpen = false;
+                
+                // Ferma rotazione suggerimenti
+                if (suggestionRotationInterval) {
+                    clearInterval(suggestionRotationInterval);
+                    suggestionRotationInterval = null;
+                }
+                
+                // Nascondi suggerimenti rapidi
+                hideQuickSuggestions();
             }
         }
         
@@ -9382,6 +9405,19 @@
             
             // Inizializza chat chiusa
             closeAssistantChat();
+            
+            // Aggiungi effetto glow al toggle ogni 2 minuti se chiuso
+            setInterval(() => {
+                if (!assistantChatOpen) {
+                    const toggle = document.getElementById('assistant-chat-toggle');
+                    if (toggle) {
+                        toggle.classList.add('has-suggestions');
+                        setTimeout(() => {
+                            toggle.classList.remove('has-suggestions');
+                        }, 2000);
+                    }
+                }
+            }, 120000); // Ogni 2 minuti
         });
 
         // Funzione ricerca nella mappa
