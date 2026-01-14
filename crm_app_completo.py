@@ -198,6 +198,22 @@ class OpportunityTask(TimestampMixin, db.Model):
     description = db.Column(db.Text)
     assigned_to_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)  # Chi deve farlo
     due_date = db.Column(db.Date)
+
+
+class AssistantLog(TimestampMixin, db.Model):
+    """Log delle richieste all'assistente AI"""
+    __tablename__ = "assistant_logs"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    user_message = db.Column(db.Text, nullable=False)
+    ai_reply = db.Column(db.Text)
+    ai_response_raw = db.Column(db.Text)  # Risposta completa JSON dall'AI
+    actions_executed = db.Column(db.Text)  # JSON delle azioni eseguite
+    errors = db.Column(db.Text)  # JSON degli errori
+    tokens_used = db.Column(db.Integer)  # Token utilizzati (se disponibile)
+    model_used = db.Column(db.String(50))  # Modello AI usato
+    
+    user = db.relationship("User", backref="assistant_logs")
     is_completed = db.Column(db.Boolean, default=False)
     completed_at = db.Column(db.DateTime)
     completed_by_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
@@ -8202,14 +8218,27 @@ def assistant():
 
     system_prompt = (
         "You are a CRM assistant. Reply ONLY in JSON with keys: reply (string), actions (array). "
-        "Allowed action types: update_opportunity_stage, update_opportunity_category, create_task. "
-        "For update actions provide opportunity_id or opportunity_name, and stage/category. "
-        "For create_task provide task_type (send_offer, call, recall, other), description, "
+        "Allowed action types: update_opportunity_stage, update_opportunity_category, update_opportunity_heat_level, "
+        "update_opportunity_amount, update_opportunity_close_date, create_task. "
+        "For update_opportunity_stage: provide opportunity_id or opportunity_name, and stage. "
+        "For update_opportunity_category: provide opportunity_id or opportunity_name, and category (UR, MiR, Unitree, Altri). "
+        "For update_opportunity_heat_level: provide opportunity_id or opportunity_name, and heat_level (calda, tiepida, fredda_speranza, fredda_gelo, da_categorizzare). "
+        "For update_opportunity_amount: provide opportunity_id or opportunity_name, and amount (number). "
+        "For update_opportunity_close_date: provide opportunity_id or opportunity_name, and close_date (YYYY-MM-DD). "
+        "For create_task: provide task_type (send_offer, call, recall, other), description, "
         "optional due_date (YYYY-MM-DD), and opportunity_id/opportunity_name or account_id/account_name. "
         "Use standard stage values: Qualification, Needs Analysis, Value Proposition, Id. Decision Makers, "
-        "Perception Analysis, Proposal/Price Quote, Negotiation/Review, Closed Won, Closed Lost."
+        "Perception Analysis, Proposal/Price Quote, Negotiation/Review, Closed Won, Closed Lost. "
+        "For names, be tolerant of typos and partial matches - use the closest match you can find."
     )
 
+    # Log della richiesta
+    log_entry = AssistantLog(
+        user_id=session['user_id'],
+        user_message=user_message,
+        model_used=model
+    )
+    
     try:
         import requests
 
@@ -8231,7 +8260,15 @@ def assistant():
         response.raise_for_status()
         result = response.json()
         content = result.get('choices', [{}])[0].get('message', {}).get('content', '')
+        
+        # Salva token utilizzati se disponibili
+        usage = result.get('usage', {})
+        log_entry.tokens_used = usage.get('total_tokens')
+        log_entry.ai_response_raw = json.dumps(result)
     except Exception as e:
+        log_entry.errors = json.dumps({'error': str(e)})
+        db.session.add(log_entry)
+        db.session.commit()
         return jsonify({'error': f'Errore chiamata AI: {str(e)}'}), 500
 
     def parse_json(text_value):
@@ -8295,6 +8332,33 @@ def assistant():
         except Exception:
             return None
 
+    def fuzzy_match_name(search_name, names_list, threshold=0.6):
+        """Fuzzy matching per trovare il nome più simile"""
+        try:
+            from difflib import SequenceMatcher
+            search_lower = search_name.lower().strip()
+            best_match = None
+            best_score = 0
+            
+            for name in names_list:
+                name_lower = name.lower().strip()
+                # Calcola similarità
+                score = SequenceMatcher(None, search_lower, name_lower).ratio()
+                # Bonus se contiene la stringa di ricerca
+                if search_lower in name_lower:
+                    score += 0.2
+                # Bonus se inizia con la stringa di ricerca
+                if name_lower.startswith(search_lower):
+                    score += 0.1
+                
+                if score > best_score:
+                    best_score = score
+                    best_match = name
+            
+            return best_match if best_score >= threshold else None
+        except:
+            return None
+
     def resolve_opportunity(action):
         opp_id = action.get('opportunity_id')
         if opp_id:
@@ -8302,9 +8366,28 @@ def assistant():
         name = (action.get('opportunity_name') or '').strip()
         if not name:
             return None
+        
+        # Prima prova match esatto/parziale
         matches = Opportunity.query.filter(Opportunity.name.ilike(f"%{name}%")).all()
         if len(matches) == 1:
             return matches[0]
+        elif len(matches) > 1:
+            # Se ci sono più match, usa fuzzy matching
+            names = [m.name for m in matches]
+            best_name = fuzzy_match_name(name, names, threshold=0.5)
+            if best_name:
+                return next((m for m in matches if m.name == best_name), None)
+            # Se non trova match fuzzy, restituisci il primo
+            return matches[0]
+        
+        # Se non trova nulla, prova ricerca più ampia (senza case sensitivity)
+        all_opps = Opportunity.query.all()
+        if all_opps:
+            names = [o.name for o in all_opps]
+            best_name = fuzzy_match_name(name, names, threshold=0.4)
+            if best_name:
+                return next((o for o in all_opps if o.name == best_name), None)
+        
         return None
 
     def resolve_account(action):
@@ -8314,9 +8397,28 @@ def assistant():
         name = (action.get('account_name') or '').strip()
         if not name:
             return None
+        
+        # Prima prova match esatto/parziale
         matches = Account.query.filter(Account.name.ilike(f"%{name}%")).all()
         if len(matches) == 1:
             return matches[0]
+        elif len(matches) > 1:
+            # Se ci sono più match, usa fuzzy matching
+            names = [a.name for a in matches]
+            best_name = fuzzy_match_name(name, names, threshold=0.5)
+            if best_name:
+                return next((a for a in matches if a.name == best_name), None)
+            # Se non trova match fuzzy, restituisci il primo
+            return matches[0]
+        
+        # Se non trova nulla, prova ricerca più ampia
+        all_accounts = Account.query.all()
+        if all_accounts:
+            names = [a.name for a in all_accounts]
+            best_name = fuzzy_match_name(name, names, threshold=0.4)
+            if best_name:
+                return next((a for a in all_accounts if a.name == best_name), None)
+        
         return None
 
     results = []
@@ -8376,8 +8478,72 @@ def assistant():
                 'opportunity_id': task.opportunity_id,
                 'account_id': task.account_id
             })
+        elif action_type == 'update_opportunity_heat_level':
+            opp = resolve_opportunity(action)
+            heat_level = (action.get('heat_level') or '').strip().lower()
+            valid_heat_levels = ['calda', 'tiepida', 'fredda_speranza', 'fredda_gelo', 'da_categorizzare']
+            if not opp:
+                errors.append({'type': action_type, 'error': 'Opportunita non trovata'})
+                continue
+            if heat_level not in valid_heat_levels:
+                errors.append({'type': action_type, 'error': f'Heat level non valido. Usa: {", ".join(valid_heat_levels)}'})
+                continue
+            
+            # Aggiorna heat_level e probability automaticamente
+            opp.heat_level = heat_level
+            if heat_level == 'calda':
+                opp.probability = 50
+            elif heat_level == 'tiepida':
+                opp.probability = 15
+            elif heat_level == 'fredda_speranza':
+                opp.probability = 5
+            elif heat_level == 'fredda_gelo':
+                opp.probability = 0
+            else:
+                opp.probability = 0
+            opp.updated_at = datetime.utcnow()
+            db.session.commit()
+            results.append({'type': action_type, 'opportunity_id': opp.id, 'heat_level': heat_level, 'probability': opp.probability})
+        elif action_type == 'update_opportunity_amount':
+            opp = resolve_opportunity(action)
+            amount = action.get('amount')
+            if not opp:
+                errors.append({'type': action_type, 'error': 'Opportunita non trovata'})
+                continue
+            try:
+                amount_float = float(amount) if amount else 0.0
+                opp.amount = amount_float
+                opp.updated_at = datetime.utcnow()
+                db.session.commit()
+                results.append({'type': action_type, 'opportunity_id': opp.id, 'amount': amount_float})
+            except (ValueError, TypeError):
+                errors.append({'type': action_type, 'error': 'Importo non valido'})
+        elif action_type == 'update_opportunity_close_date':
+            opp = resolve_opportunity(action)
+            close_date_str = action.get('close_date')
+            if not opp:
+                errors.append({'type': action_type, 'error': 'Opportunita non trovata'})
+                continue
+            try:
+                if close_date_str:
+                    close_date = datetime.fromisoformat(close_date_str.replace('Z', '+00:00')).date()
+                else:
+                    close_date = None
+                opp.close_date = close_date
+                opp.updated_at = datetime.utcnow()
+                db.session.commit()
+                results.append({'type': action_type, 'opportunity_id': opp.id, 'close_date': close_date.isoformat() if close_date else None})
+            except (ValueError, TypeError) as e:
+                errors.append({'type': action_type, 'error': f'Data non valida: {str(e)}'})
         else:
             errors.append({'type': action_type or 'unknown', 'error': 'Tipo azione non supportato'})
+
+    # Salva log con risultati
+    log_entry.ai_reply = reply
+    log_entry.actions_executed = json.dumps(results)
+    log_entry.errors = json.dumps(errors) if errors else None
+    db.session.add(log_entry)
+    db.session.commit()
 
     return jsonify({
         'reply': reply,
@@ -8407,6 +8573,45 @@ def get_all_users():
             'role': u.role,
             'created_at': u.created_at.isoformat() if u.created_at else None
         } for u in users]
+    })
+
+
+@app.route('/api/assistant/logs', methods=['GET'])
+def get_assistant_logs():
+    """Ottieni log delle richieste all'assistente (solo admin)"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Non autorizzato'}), 401
+    
+    user = User.query.get(session['user_id'])
+    if not user or user.role != 'admin':
+        return jsonify({'error': 'Solo admin può vedere i log'}), 403
+    
+    page = request.args.get('page', 1, type=int)
+    per_page = min(request.args.get('per_page', 50, type=int), 100)
+    
+    logs = AssistantLog.query.order_by(AssistantLog.created_at.desc()).paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+    
+    return jsonify({
+        'logs': [{
+            'id': log.id,
+            'user_id': log.user_id,
+            'user_name': f"{log.user.first_name} {log.user.last_name}" if log.user else 'Unknown',
+            'user_message': log.user_message,
+            'ai_reply': log.ai_reply,
+            'actions_executed': json.loads(log.actions_executed) if log.actions_executed else [],
+            'errors': json.loads(log.errors) if log.errors else [],
+            'tokens_used': log.tokens_used,
+            'model_used': log.model_used,
+            'created_at': log.created_at.isoformat() if log.created_at else None
+        } for log in logs.items],
+        'pagination': {
+            'page': page,
+            'per_page': per_page,
+            'total': logs.total,
+            'pages': logs.pages
+        }
     })
 
 if __name__ == '__main__':
