@@ -6513,18 +6513,46 @@
         async function loadMyTasks() {
             try {
                 const res = await fetch('/api/my-tasks');
+                
+                // Verifica che la risposta sia JSON
+                const contentType = res.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    const text = await res.text();
+                    console.error('Errore: risposta non JSON da /api/my-tasks:', text.substring(0, 500));
+                    const container = document.getElementById('my-tasks-container');
+                    if (container) {
+                        container.innerHTML = 
+                            '<div style="text-align: center; padding: 40px; color: var(--danger);">Errore: il server ha restituito una risposta non valida. Controlla la console per i dettagli.</div>';
+                    }
+                    return;
+                }
+                
                 const data = await res.json();
+                
+                if (data.error) {
+                    console.error('Errore API:', data.error);
+                    const container = document.getElementById('my-tasks-container');
+                    if (container) {
+                        container.innerHTML = 
+                            `<div style="text-align: center; padding: 40px; color: var(--danger);">Errore: ${data.error}</div>`;
+                    }
+                    return;
+                }
+                
                 allMyTasks = [
                     ...(data.global_tasks || []),
                     ...(data.opportunity_tasks || [])
                 ];
+                
+                console.log(`[DEBUG] Caricate ${allMyTasks.length} attività (${data.global_tasks?.length || 0} globali, ${data.opportunity_tasks?.length || 0} opportunità)`);
+                
                 renderMyTasks();
             } catch (err) {
                 console.error('Errore caricamento mie attività:', err);
                 const container = document.getElementById('my-tasks-container');
                 if (container) {
                     container.innerHTML = 
-                        '<div style="text-align: center; padding: 40px; color: var(--danger);">Errore nel caricamento delle attività</div>';
+                        `<div style="text-align: center; padding: 40px; color: var(--danger);">Errore nel caricamento delle attività: ${err.message}</div>`;
                 }
             }
         }
@@ -6560,6 +6588,7 @@
             
             const taskTypeLabels = window.taskTypeLabels || {
                 'call': '📞 CHIAMARE',
+                'recall': '🔄 RICHIAMARE',
                 'visit': '🚗 ANDARE IN VISITA',
                 'send_offer': '📄 MANDARE OFFERTA',
                 'email': '✉️ INVIARE EMAIL',

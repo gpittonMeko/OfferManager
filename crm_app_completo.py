@@ -3000,24 +3000,48 @@ def get_my_tasks():
             account_name = t.opportunity.account.name
             account_image_url = getattr(t.opportunity.account, 'image_url', None)
         
-        return {
-            'id': t.id,
-            'task_type': t.task_type,
-            'description': t.description,
-            'assigned_to_id': t.assigned_to_id,
-            'assigned_to_name': f"{t.assigned_to.first_name} {t.assigned_to.last_name}" if t.assigned_to else None,
-            'due_date': t.due_date.isoformat() if t.due_date else None,
-            'is_completed': t.is_completed,
-            'completed_at': t.completed_at.isoformat() if t.completed_at else None,
-            'completed_by_name': f"{t.completed_by.first_name} {t.completed_by.last_name}" if t.completed_by else None,
-            'created_at': t.created_at.isoformat() if t.created_at else None,
-            'opportunity_id': t.opportunity_id,
-            'opportunity_name': t.opportunity.name if t.opportunity else None,
-            'account_id': account_id,
-            'account_name': account_name,
-            'account_image_url': account_image_url,
-            'opportunity_offers': [{'id': o.id, 'number': o.number, 'pdf_path': o.pdf_path, 'docx_path': o.docx_path, 'amount': (o.amount if o.amount and o.amount > 0 else 0)} for o in t.opportunity.offers] if t.opportunity and t.opportunity.offers else []
-        }
+        try:
+            return {
+                'id': t.id,
+                'task_type': t.task_type,
+                'description': t.description or '',
+                'assigned_to_id': t.assigned_to_id,
+                'assigned_to_name': f"{t.assigned_to.first_name} {t.assigned_to.last_name}" if t.assigned_to else None,
+                'due_date': t.due_date.isoformat() if t.due_date else None,
+                'is_completed': bool(t.is_completed) if t.is_completed is not None else False,
+                'completed_at': t.completed_at.isoformat() if t.completed_at and hasattr(t.completed_at, 'isoformat') else (str(t.completed_at) if t.completed_at else None),
+                'completed_by_name': f"{t.completed_by.first_name} {t.completed_by.last_name}" if t.completed_by and hasattr(t.completed_by, 'first_name') else None,
+                'created_at': t.created_at.isoformat() if t.created_at and hasattr(t.created_at, 'isoformat') else (str(t.created_at) if t.created_at else None),
+                'opportunity_id': t.opportunity_id,
+                'opportunity_name': t.opportunity.name if t.opportunity else None,
+                'account_id': account_id,
+                'account_name': account_name,
+                'account_image_url': account_image_url,
+                'opportunity_offers': [{'id': o.id, 'number': o.number, 'pdf_path': o.pdf_path, 'docx_path': o.docx_path, 'amount': (o.amount if o.amount and o.amount > 0 else 0)} for o in t.opportunity.offers] if t.opportunity and hasattr(t.opportunity, 'offers') and t.opportunity.offers else []
+            }
+        except Exception as e:
+            # Fallback per evitare errori
+            print(f"Errore in task_to_dict per task {t.id}: {e}")
+            import traceback
+            traceback.print_exc()
+            return {
+                'id': t.id if hasattr(t, 'id') else None,
+                'task_type': getattr(t, 'task_type', 'other'),
+                'description': getattr(t, 'description', ''),
+                'assigned_to_id': getattr(t, 'assigned_to_id', None),
+                'assigned_to_name': None,
+                'due_date': None,
+                'is_completed': False,
+                'completed_at': None,
+                'completed_by_name': None,
+                'created_at': None,
+                'opportunity_id': getattr(t, 'opportunity_id', None),
+                'opportunity_name': None,
+                'account_id': None,
+                'account_name': None,
+                'account_image_url': None,
+                'opportunity_offers': []
+            }
     
     try:
         return jsonify({
