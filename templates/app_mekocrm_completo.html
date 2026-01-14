@@ -1612,6 +1612,135 @@
             color: var(--text-light);
         }
 
+        /* Chat fluttuante assistente */
+        .assistant-chat-widget {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 380px;
+            max-height: 600px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            z-index: 10000;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .assistant-chat-widget.open {
+            display: flex;
+        }
+        
+        .assistant-chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .assistant-chat-header h3 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .assistant-chat-close {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        
+        .assistant-chat-close:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .assistant-chat-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .assistant-chat-messages {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            background: var(--bg-light);
+            min-height: 200px;
+            max-height: 400px;
+        }
+        
+        .assistant-chat-input-container {
+            padding: 12px;
+            border-top: 1px solid var(--border-color);
+            background: white;
+        }
+        
+        .assistant-chat-input-row {
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+        }
+        
+        .assistant-chat-input-row textarea {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: none;
+            max-height: 100px;
+        }
+        
+        .assistant-chat-input-row button {
+            padding: 10px 20px;
+            height: fit-content;
+        }
+        
+        .assistant-chat-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(102,126,234,0.4);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .assistant-chat-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(102,126,234,0.6);
+        }
+        
+        .assistant-chat-toggle.hidden {
+            display: none;
+        }
+
 </style>
 </head>
 <body>
@@ -2037,26 +2166,28 @@
             <div class="hero">
                 <div>
                     <h2>🤖 Assistant</h2>
-                    <p style="color: var(--text-light);">Modifica opportunità e crea attività usando il linguaggio naturale</p>
+                    <p style="color: var(--text-light);">Chat AI per modificare opportunità e creare attività</p>
+                </div>
+                <div class="hero-actions">
+                    <button class="button" onclick="openAssistantChat()">💬 Apri Chat Assistant</button>
                 </div>
             </div>
             
-            <div class="card assistant-container">
-                <div id="assistant-messages" class="assistant-messages">
-                    <div class="assistant-message bot">
-                        Ciao! Sono il tuo assistente CRM. Puoi chiedermi di:
-                        <ul style="margin: 8px 0; padding-left: 20px;">
-                            <li>Cambiare lo stato di un'opportunità (es: "Metti Eurovo in Negoziazione")</li>
-                            <li>Creare attività (es: "Crea un'attività per chiamare Eurofresi")</li>
-                            <li>Aggiornare categorie (es: "Metti Multimac in categoria UR")</li>
-                        </ul>
-                    </div>
+            <div class="card">
+                <p style="color: var(--text-medium); margin-bottom: 16px;">
+                    L'assistente è disponibile come chat fluttuante in basso a destra. 
+                    Clicca sul pulsante qui sopra o sul pulsante fluttuante per aprire la chat.
+                </p>
+                <div style="background: var(--bg-light); padding: 16px; border-radius: 8px;">
+                    <h3 style="margin-top: 0; font-size: 16px; font-weight: 600;">Cosa puoi chiedere:</h3>
+                    <ul style="margin: 8px 0; padding-left: 20px; color: var(--text-dark);">
+                        <li>Cambiare lo stato di un'opportunità (es: "Metti Eurovo in Negoziazione")</li>
+                        <li>Creare attività (es: "Crea un'attività per chiamare Eurofresi assegnata a Giovanni")</li>
+                        <li>Aggiornare categorie (es: "Metti Multimac in categoria UR")</li>
+                        <li>Cambiare calore opportunità (es: "Metti Scuola Camerana in calda")</li>
+                        <li>Aggiornare importo (es: "Imposta importo 50000 per Eurovo")</li>
+                    </ul>
                 </div>
-                <div class="assistant-input-row">
-                    <textarea id="assistant-input" placeholder="Scrivi qui il tuo comando... (es: 'Metti Eurovo in Negoziazione')" style="padding: 12px; border: 2px solid var(--border-color); border-radius: 8px; font-size: 14px; font-family: inherit; resize: vertical;"></textarea>
-                    <button id="assistant-send" class="button" style="height: fit-content; padding: 12px 24px;">Invia</button>
-                </div>
-                <div class="assistant-actions" id="assistant-actions"></div>
             </div>
         </section>
 
@@ -8727,27 +8858,36 @@
         });
     
         let assistantBusy = false;
-
-        function appendAssistantMessage(role, text) {
-            const container = document.getElementById('assistant-messages');
-            if (!container) return;
+        
+        function appendAssistantMessage(role, text, container) {
+            const targetContainer = container || document.getElementById('assistant-chat-messages') || document.getElementById('assistant-messages');
+            if (!targetContainer) return;
+            
             const message = document.createElement('div');
             message.className = `assistant-message ${role}`;
             message.textContent = text;
-            container.appendChild(message);
-            container.scrollTop = container.scrollHeight;
+            targetContainer.appendChild(message);
+            targetContainer.scrollTop = targetContainer.scrollHeight;
         }
 
         async function sendAssistantMessage() {
-            const input = document.getElementById('assistant-input');
+            const input = document.getElementById('assistant-chat-input') || document.getElementById('assistant-input');
+            const messagesContainer = document.getElementById('assistant-chat-messages') || document.getElementById('assistant-messages');
             const actionsDiv = document.getElementById('assistant-actions');
+            
             if (!input || assistantBusy) return;
             const message = input.value.trim();
             if (!message) return;
             assistantBusy = true;
-            appendAssistantMessage('user', message);
+            
+            // Aggiungi messaggio utente
+            appendAssistantMessage('user', message, messagesContainer);
             input.value = '';
-            if (actionsDiv) actionsDiv.innerHTML = '';
+            
+            // Apri chat se chiusa
+            if (!assistantChatOpen) {
+                openAssistantChat();
+            }
 
             try {
                 const res = await fetch('/api/assistant', {
@@ -8758,13 +8898,13 @@
                 
                 if (!res.ok) {
                     const errorData = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
-                    appendAssistantMessage('bot', '❌ Errore: ' + (errorData.error || 'Errore durante la richiesta.'));
+                    appendAssistantMessage('bot', '❌ Errore: ' + (errorData.error || 'Errore durante la richiesta.'), messagesContainer);
                     return;
                 }
                 
                 const data = await res.json();
                 const reply = data.reply || 'Operazione completata.';
-                appendAssistantMessage('bot', reply);
+                appendAssistantMessage('bot', reply, messagesContainer);
                 
                 // Mostra azioni eseguite
                 if (data.actions && data.actions.length > 0 && actionsDiv) {
@@ -8776,6 +8916,8 @@
                             actionsHtml += `<li>Categoria opportunità ${action.opportunity_id} aggiornata a: ${action.category}</li>`;
                         } else if (action.type === 'create_task') {
                             actionsHtml += `<li>Attività creata (ID: ${action.task_id}, Tipo: ${action.task_type})</li>`;
+                        } else if (action.type === 'update_opportunity_heat_level') {
+                            actionsHtml += `<li>Calore opportunità ${action.opportunity_id} aggiornato a: ${action.heat_level}</li>`;
                         }
                     });
                     actionsHtml += '</ul></div>';
@@ -8802,15 +8944,69 @@
                 }
             } catch (err) {
                 console.error('Errore assistente:', err);
-                appendAssistantMessage('bot', '❌ Errore: ' + err.message);
+                appendAssistantMessage('bot', '❌ Errore: ' + err.message, messagesContainer);
             } finally {
                 assistantBusy = false;
             }
         }
 
+        // Gestione chat fluttuante assistente
+        let assistantChatOpen = false;
+        
+        function openAssistantChat() {
+            const widget = document.getElementById('assistant-chat-widget');
+            const toggle = document.getElementById('assistant-chat-toggle');
+            if (widget) {
+                widget.classList.add('open');
+                if (toggle) toggle.classList.add('hidden');
+                assistantChatOpen = true;
+                // Scrolla in basso
+                const messages = document.getElementById('assistant-chat-messages');
+                if (messages) {
+                    setTimeout(() => messages.scrollTop = messages.scrollHeight, 100);
+                }
+            }
+        }
+        
+        function closeAssistantChat() {
+            const widget = document.getElementById('assistant-chat-widget');
+            const toggle = document.getElementById('assistant-chat-toggle');
+            if (widget) {
+                widget.classList.remove('open');
+                if (toggle) toggle.classList.remove('hidden');
+                assistantChatOpen = false;
+            }
+        }
+        
+        // Quando si clicca sulla tab Assistant, apri la chat
         document.addEventListener('DOMContentLoaded', () => {
-            const sendBtn = document.getElementById('assistant-send');
-            const input = document.getElementById('assistant-input');
+            // Aggiungi listener per la tab Assistant
+            const assistantTab = document.querySelector('[data-target="assistant-view"]');
+            if (assistantTab) {
+                assistantTab.addEventListener('click', () => {
+                    setTimeout(() => {
+                        if (document.getElementById('assistant-view').classList.contains('active')) {
+                            openAssistantChat();
+                        }
+                    }, 100);
+                });
+            }
+            
+            // Listener per pulsante toggle chat
+            const toggleBtn = document.getElementById('assistant-chat-toggle');
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', openAssistantChat);
+            }
+            
+            // Listener per pulsante chiudi chat
+            const closeBtn = document.getElementById('assistant-chat-close');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', closeAssistantChat);
+            }
+            
+            // Listener per invio messaggi nella chat fluttuante
+            const sendBtn = document.getElementById('assistant-chat-send');
+            const input = document.getElementById('assistant-chat-input');
             if (sendBtn) sendBtn.addEventListener('click', sendAssistantMessage);
             if (input) {
                 input.addEventListener('keydown', (event) => {
@@ -8820,6 +9016,9 @@
                     }
                 });
             }
+            
+            // Inizializza chat chiusa
+            closeAssistantChat();
         });
 
         // Funzione ricerca nella mappa
@@ -8902,7 +9101,37 @@
             }, 500);
         }
 
-</script>
+    </script>
+    
+    <!-- Chat Fluttuante Assistente -->
+    <button id="assistant-chat-toggle" class="assistant-chat-toggle" title="Apri Assistente">🤖</button>
+    
+    <div id="assistant-chat-widget" class="assistant-chat-widget">
+        <div class="assistant-chat-header" onclick="openAssistantChat()">
+            <h3>🤖 Assistente CRM</h3>
+            <button id="assistant-chat-close" class="assistant-chat-close" onclick="event.stopPropagation(); closeAssistantChat();">×</button>
+        </div>
+        <div class="assistant-chat-body">
+            <div id="assistant-chat-messages" class="assistant-chat-messages">
+                <div class="assistant-message bot">
+                    Ciao! Sono il tuo assistente CRM. Puoi chiedermi di:
+                    <ul style="margin: 8px 0; padding-left: 20px; font-size: 13px;">
+                        <li>Cambiare lo stato di un'opportunità</li>
+                        <li>Creare attività assegnate a qualcuno</li>
+                        <li>Aggiornare categorie e calore</li>
+                        <li>Modificare importi e date</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="assistant-chat-input-container">
+                <div class="assistant-chat-input-row">
+                    <textarea id="assistant-chat-input" placeholder="Scrivi qui il tuo comando... (es: 'Metti Eurovo in Negoziazione')" rows="2"></textarea>
+                    <button id="assistant-chat-send" class="button">Invia</button>
+                </div>
+                <div id="assistant-actions" style="margin-top: 8px; font-size: 12px;"></div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
 
