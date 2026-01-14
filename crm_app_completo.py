@@ -8584,44 +8584,18 @@ def assistant():
             
             try:
                 if query_type == 'top_opportunities':
-                # Top opportunità per valore
-                from sqlalchemy import text
-                query = text("""
-                    SELECT o.id, o.name, o.amount, o.stage, o.heat_level, o.supplier_category,
-                           a.name as account_name, o.created_at
-                    FROM opportunities o
-                    LEFT JOIN accounts a ON o.account_id = a.id
-                    WHERE o.stage NOT IN ('Closed Won', 'Closed Lost')
-                    ORDER BY COALESCE(o.amount, 0) DESC
-                    LIMIT :limit
-                """)
-                results = db.session.execute(query, {'limit': limit}).fetchall()
-                for row in results:
-                    query_results.append({
-                        'id': row[0],
-                        'name': row[1],
-                        'amount': row[2] or 0,
-                        'stage': row[3],
-                        'heat_level': row[4],
-                        'category': row[5],
-                        'account_name': row[6],
-                        'created_at': row[7].isoformat() if row[7] else None
-                    })
-            
-            elif query_type == 'opportunities_by_category':
-                category = action.get('category', '').strip()
-                if category:
+                    # Top opportunità per valore
+                    from sqlalchemy import text
                     query = text("""
                         SELECT o.id, o.name, o.amount, o.stage, o.heat_level, o.supplier_category,
                                a.name as account_name, o.created_at
                         FROM opportunities o
                         LEFT JOIN accounts a ON o.account_id = a.id
-                        WHERE o.supplier_category LIKE :category
-                          AND o.stage NOT IN ('Closed Won', 'Closed Lost')
-                        ORDER BY o.created_at DESC
+                        WHERE o.stage NOT IN ('Closed Won', 'Closed Lost')
+                        ORDER BY COALESCE(o.amount, 0) DESC
                         LIMIT :limit
                     """)
-                    results = db.session.execute(query, {'category': f'%{category}%', 'limit': limit}).fetchall()
+                    results = db.session.execute(query, {'limit': limit}).fetchall()
                     for row in results:
                         query_results.append({
                             'id': row[0],
@@ -8633,11 +8607,37 @@ def assistant():
                             'account_name': row[6],
                             'created_at': row[7].isoformat() if row[7] else None
                         })
-            
-            elif query_type == 'opportunities_by_date':
-                month = action.get('month', '').strip()
-                category = action.get('category', '').strip()
-                if month:
+                
+                elif query_type == 'opportunities_by_category':
+                    category = action.get('category', '').strip()
+                    if category:
+                        query = text("""
+                            SELECT o.id, o.name, o.amount, o.stage, o.heat_level, o.supplier_category,
+                                   a.name as account_name, o.created_at
+                            FROM opportunities o
+                            LEFT JOIN accounts a ON o.account_id = a.id
+                            WHERE o.supplier_category LIKE :category
+                              AND o.stage NOT IN ('Closed Won', 'Closed Lost')
+                            ORDER BY o.created_at DESC
+                            LIMIT :limit
+                        """)
+                        results = db.session.execute(query, {'category': f'%{category}%', 'limit': limit}).fetchall()
+                        for row in results:
+                            query_results.append({
+                                'id': row[0],
+                                'name': row[1],
+                                'amount': row[2] or 0,
+                                'stage': row[3],
+                                'heat_level': row[4],
+                                'category': row[5],
+                                'account_name': row[6],
+                                'created_at': row[7].isoformat() if row[7] else None
+                            })
+                
+                elif query_type == 'opportunities_by_date':
+                    month = action.get('month', '').strip()
+                    category = action.get('category', '').strip()
+                    if month:
                     if category:
                         query = text("""
                             SELECT o.id, o.name, o.amount, o.stage, o.heat_level, o.supplier_category,
@@ -8677,56 +8677,56 @@ def assistant():
                             'created_at': row[7].isoformat() if row[7] else None
                         })
             
-            elif query_type == 'highest_value_opportunity':
-                query = text("""
-                    SELECT o.id, o.name, o.amount, o.stage, o.heat_level, o.supplier_category,
-                           a.name as account_name, o.created_at
-                    FROM opportunities o
-                    LEFT JOIN accounts a ON o.account_id = a.id
-                    WHERE o.stage NOT IN ('Closed Won', 'Closed Lost')
-                    ORDER BY COALESCE(o.amount, 0) DESC
-                    LIMIT 1
-                """)
-                result = db.session.execute(query).fetchone()
-                if result:
-                    query_results.append({
-                        'id': result[0],
-                        'name': result[1],
-                        'amount': result[2] or 0,
-                        'stage': result[3],
-                        'heat_level': result[4],
-                        'category': result[5],
-                        'account_name': result[6],
-                        'created_at': result[7].isoformat() if result[7] else None
-                    })
-            
-            elif query_type == 'opportunities_by_heat_level':
-                heat_level = action.get('heat_level', '').strip()
-                if heat_level:
+                elif query_type == 'highest_value_opportunity':
                     query = text("""
                         SELECT o.id, o.name, o.amount, o.stage, o.heat_level, o.supplier_category,
                                a.name as account_name, o.created_at
                         FROM opportunities o
                         LEFT JOIN accounts a ON o.account_id = a.id
-                        WHERE o.heat_level = :heat_level
-                          AND o.stage NOT IN ('Closed Won', 'Closed Lost')
+                        WHERE o.stage NOT IN ('Closed Won', 'Closed Lost')
                         ORDER BY COALESCE(o.amount, 0) DESC
-                        LIMIT :limit
+                        LIMIT 1
                     """)
-                    results = db.session.execute(query, {'heat_level': heat_level, 'limit': limit}).fetchall()
-                    for row in results:
+                    result = db.session.execute(query).fetchone()
+                    if result:
                         query_results.append({
-                            'id': row[0],
-                            'name': row[1],
-                            'amount': row[2] or 0,
-                            'stage': row[3],
-                            'heat_level': row[4],
-                            'category': row[5],
-                            'account_name': row[6],
-                            'created_at': row[7].isoformat() if row[7] else None
+                            'id': result[0],
+                            'name': result[1],
+                            'amount': result[2] or 0,
+                            'stage': result[3],
+                            'heat_level': result[4],
+                            'category': result[5],
+                            'account_name': result[6],
+                            'created_at': result[7].isoformat() if result[7] else None
                         })
-            
-            elif query_type == 'account_opportunities':
+                
+                elif query_type == 'opportunities_by_heat_level':
+                    heat_level = action.get('heat_level', '').strip()
+                    if heat_level:
+                        query = text("""
+                            SELECT o.id, o.name, o.amount, o.stage, o.heat_level, o.supplier_category,
+                                   a.name as account_name, o.created_at
+                            FROM opportunities o
+                            LEFT JOIN accounts a ON o.account_id = a.id
+                            WHERE o.heat_level = :heat_level
+                              AND o.stage NOT IN ('Closed Won', 'Closed Lost')
+                            ORDER BY COALESCE(o.amount, 0) DESC
+                            LIMIT :limit
+                        """)
+                        results = db.session.execute(query, {'heat_level': heat_level, 'limit': limit}).fetchall()
+                        for row in results:
+                            query_results.append({
+                                'id': row[0],
+                                'name': row[1],
+                                'amount': row[2] or 0,
+                                'stage': row[3],
+                                'heat_level': row[4],
+                                'category': row[5],
+                                'account_name': row[6],
+                                'created_at': row[7].isoformat() if row[7] else None
+                            })
+                
+                elif query_type == 'account_opportunities':
                 account_name = action.get('account_name', '').strip()
                 if account_name:
                     query = text("""
@@ -8752,30 +8752,30 @@ def assistant():
                             'created_at': row[7].isoformat() if row[7] else None
                         })
             
-            elif query_type == 'pipeline_opportunities':
-                # Tutte le opportunità attive nella pipeline (non chiuse)
-                query = text("""
-                    SELECT o.id, o.name, o.amount, o.stage, o.heat_level, o.supplier_category,
-                           a.name as account_name, o.created_at
-                    FROM opportunities o
-                    LEFT JOIN accounts a ON o.account_id = a.id
-                    WHERE o.stage NOT IN ('Closed Won', 'Closed Lost')
-                    ORDER BY COALESCE(o.amount, 0) DESC
-                    LIMIT :limit
-                """)
-                results = db.session.execute(query, {'limit': limit}).fetchall()
-                for row in results:
-                    query_results.append({
-                        'id': row[0],
-                        'name': row[1],
-                        'amount': row[2] or 0,
-                        'stage': row[3],
-                        'heat_level': row[4],
-                        'category': row[5],
-                        'account_name': row[6],
-                        'created_at': row[7].isoformat() if row[7] else None
-                    })
-            
+                elif query_type == 'pipeline_opportunities':
+                    # Tutte le opportunità attive nella pipeline (non chiuse)
+                    query = text("""
+                        SELECT o.id, o.name, o.amount, o.stage, o.heat_level, o.supplier_category,
+                               a.name as account_name, o.created_at
+                        FROM opportunities o
+                        LEFT JOIN accounts a ON o.account_id = a.id
+                        WHERE o.stage NOT IN ('Closed Won', 'Closed Lost')
+                        ORDER BY COALESCE(o.amount, 0) DESC
+                        LIMIT :limit
+                    """)
+                    results = db.session.execute(query, {'limit': limit}).fetchall()
+                    for row in results:
+                        query_results.append({
+                            'id': row[0],
+                            'name': row[1],
+                            'amount': row[2] or 0,
+                            'stage': row[3],
+                            'heat_level': row[4],
+                            'category': row[5],
+                            'account_name': row[6],
+                            'created_at': row[7].isoformat() if row[7] else None
+                        })
+                
                 if query_results:
                     results.append({
                         'type': action_type,
