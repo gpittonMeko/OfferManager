@@ -9316,6 +9316,171 @@
         // Gestione chat fluttuante assistente
         let assistantChatOpen = false;
         
+        // Sistema suggerimenti dinamici per assistente
+        const assistantSuggestions = [
+            {
+                title: "📊 Analisi Pipeline",
+                description: "Vuoi vedere l'andamento delle offerte?",
+                examples: [
+                    "mostrami l'andamento pipeline ultimi 6 mesi",
+                    "quali sono le offerte più alte in valore?",
+                    "quante offerte abbiamo per categoria?"
+                ]
+            },
+            {
+                title: "📞 Contatti Rapidi",
+                description: "Cerca informazioni di contatto",
+                examples: [
+                    "qual è il numero di telefono di Fincantieri?",
+                    "dimmi il telefono dell'account SAF",
+                    "quale account ha il numero 123456?"
+                ]
+            },
+            {
+                title: "🔥 Gestione Opportunità",
+                description: "Aggiorna e modifica le tue offerte",
+                examples: [
+                    "metti Eurovo in stato Negoziazione",
+                    "aggiorna il calore di Multimac a calda",
+                    "cambia l'importo di K0211-25 a 600000"
+                ]
+            },
+            {
+                title: "✅ Crea Attività",
+                description: "Assegna task ai tuoi colleghi",
+                examples: [
+                    "crea un'attività chiamare cliente per Giovanni",
+                    "assegna a Mauro il task inviare offerta per Eurovo",
+                    "ricorda a Davide di richiamare SAF"
+                ]
+            },
+            {
+                title: "📧 Campagne Marketing",
+                description: "Crea campagne email promozionali",
+                examples: [
+                    "crea una campagna per il G1-D usando https://www.mekosrl.it/product-page/unitree-g1d-u10-flagship-e",
+                    "fammi una campagna promozionale per la lista newsletter"
+                ]
+            },
+            {
+                title: "🔍 Ricerche Avanzate",
+                description: "Trova informazioni specifiche",
+                examples: [
+                    "quali sono le prime 5 offerte di Unitree di questo mese?",
+                    "mostrami tutte le offerte tiepide",
+                    "quale è l'offerta più alta in valore?"
+                ]
+            }
+        ];
+        
+        let currentSuggestionIndex = 0;
+        let suggestionRotationInterval = null;
+        
+        function getRandomSuggestion() {
+            // Usa timestamp per variare ogni volta
+            const seed = Math.floor(Date.now() / (1000 * 60 * 60)); // Cambia ogni ora
+            const index = seed % assistantSuggestions.length;
+            return assistantSuggestions[index];
+        }
+        
+        function updateWelcomeMessage() {
+            const welcomeMsg = document.getElementById('assistant-welcome-message');
+            if (!welcomeMsg) return;
+            
+            const suggestion = getRandomSuggestion();
+            const randomExample = suggestion.examples[Math.floor(Math.random() * suggestion.examples.length)];
+            
+            welcomeMsg.innerHTML = `
+                <div style="animation: fadeIn 0.5s ease-in;">
+                    <div style="font-size: 16px; font-weight: 600; color: #1e40af; margin-bottom: 8px;">
+                        👋 Ciao! Sono il tuo assistente CRM
+                    </div>
+                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 12px; border-radius: 8px; margin: 12px 0; color: white;">
+                        <div style="font-weight: 600; margin-bottom: 6px;">${suggestion.title}</div>
+                        <div style="font-size: 13px; opacity: 0.95;">${suggestion.description}</div>
+                    </div>
+                    <div style="margin: 12px 0; padding: 10px; background: #f0f9ff; border-left: 3px solid #3b82f6; border-radius: 4px;">
+                        <div style="font-size: 12px; color: #1e40af; font-weight: 600; margin-bottom: 6px;">💡 Prova a chiedere:</div>
+                        <div style="font-size: 13px; color: #374151; font-style: italic;">"${randomExample}"</div>
+                        <button onclick="document.getElementById('assistant-chat-input').value='${randomExample}'; sendAssistantMessage();" 
+                                style="margin-top: 8px; padding: 6px 12px; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600;">
+                            🚀 Usa questo esempio
+                        </button>
+                    </div>
+                    <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid #e5e7eb;">
+                        <div style="font-size: 12px; color: #6b7280; margin-bottom: 8px;">✨ Cosa posso fare:</div>
+                        <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #4b5563; line-height: 1.8;">
+                            <li>Cambiare stato e calore delle opportunità</li>
+                            <li>Creare attività assegnate ai colleghi</li>
+                            <li>Cercare numeri di telefono e contatti</li>
+                            <li>Analizzare dati e creare grafici</li>
+                            <li>Creare campagne email marketing</li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function rotateSuggestions() {
+            if (suggestionRotationInterval) {
+                clearInterval(suggestionRotationInterval);
+            }
+            
+            // Cambia suggerimento ogni 30 secondi se la chat è aperta
+            suggestionRotationInterval = setInterval(() => {
+                if (assistantChatOpen) {
+                    currentSuggestionIndex = (currentSuggestionIndex + 1) % assistantSuggestions.length;
+                    updateWelcomeMessage();
+                }
+            }, 30000);
+        }
+        
+        function showQuickSuggestions(query) {
+            // Trova suggerimenti rilevanti
+            const matches = [];
+            assistantSuggestions.forEach(s => {
+                s.examples.forEach(ex => {
+                    if (ex.toLowerCase().includes(query)) {
+                        matches.push(ex);
+                    }
+                });
+            });
+            
+            if (matches.length > 0) {
+                const quickSuggestions = document.getElementById('quick-suggestions');
+                if (!quickSuggestions) {
+                    const container = document.querySelector('.assistant-chat-input-container');
+                    if (container) {
+                        const div = document.createElement('div');
+                        div.id = 'quick-suggestions';
+                        div.style.cssText = 'position: absolute; bottom: 100%; left: 0; right: 0; background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px; margin-bottom: 4px; max-height: 150px; overflow-y: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 1000;';
+                        container.style.position = 'relative';
+                        container.appendChild(div);
+                    }
+                }
+                
+                const quickDiv = document.getElementById('quick-suggestions');
+                if (quickDiv) {
+                    quickDiv.innerHTML = matches.slice(0, 3).map(m => 
+                        `<div onclick="document.getElementById('assistant-chat-input').value='${m}'; hideQuickSuggestions();" 
+                              style="padding: 8px; cursor: pointer; border-radius: 4px; font-size: 12px; color: #374151;"
+                              onmouseover="this.style.background='#f3f4f6'" 
+                              onmouseout="this.style.background='transparent'">
+                            ${m}
+                         </div>`
+                    ).join('');
+                    quickDiv.style.display = 'block';
+                }
+            }
+        }
+        
+        function hideQuickSuggestions() {
+            const quickDiv = document.getElementById('quick-suggestions');
+            if (quickDiv) {
+                quickDiv.style.display = 'none';
+            }
+        }
+        
         function openAssistantChat() {
             const widget = document.getElementById('assistant-chat-widget');
             const toggle = document.getElementById('assistant-chat-toggle');
@@ -9366,6 +9531,9 @@
         
         // Quando si clicca sulla tab Assistant, apri la chat
         document.addEventListener('DOMContentLoaded', () => {
+            // Inizializza messaggio di benvenuto
+            updateWelcomeMessage();
+            
             // Aggiungi listener per la tab Assistant
             const assistantTab = document.querySelector('[data-target="assistant-view"]');
             if (assistantTab) {
@@ -9373,6 +9541,8 @@
                     setTimeout(() => {
                         if (document.getElementById('assistant-view').classList.contains('active')) {
                             openAssistantChat();
+                            updateWelcomeMessage(); // Aggiorna ogni volta che si apre
+                            rotateSuggestions();
                         }
                     }, 100);
                 });
@@ -9381,7 +9551,11 @@
             // Listener per pulsante toggle chat
             const toggleBtn = document.getElementById('assistant-chat-toggle');
             if (toggleBtn) {
-                toggleBtn.addEventListener('click', openAssistantChat);
+                toggleBtn.addEventListener('click', () => {
+                    openAssistantChat();
+                    updateWelcomeMessage();
+                    rotateSuggestions();
+                });
             }
             
             // Listener per pulsante chiudi chat
@@ -9399,6 +9573,17 @@
                     if (event.key === 'Enter' && !event.shiftKey) {
                         event.preventDefault();
                         sendAssistantMessage();
+                    }
+                });
+                
+                // Suggerimenti mentre digiti
+                input.addEventListener('input', (e) => {
+                    const value = e.target.value.toLowerCase();
+                    if (value.length > 2 && value.length < 20) {
+                        // Mostra suggerimenti rapidi
+                        showQuickSuggestions(value);
+                    } else {
+                        hideQuickSuggestions();
                     }
                 });
             }
