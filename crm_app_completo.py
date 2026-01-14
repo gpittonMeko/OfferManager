@@ -8921,10 +8921,10 @@ def assistant():
 
     # Formatta risposte per query_data in modo leggibile
     formatted_reply = reply
-    for result in results:
-        if result.get('type') == 'query_data':
-            query_type = result.get('query_type', '')
-            query_results = result.get('results', [])
+    for result_item in results:
+        if isinstance(result_item, dict) and result_item.get('type') == 'query_data':
+            query_type = result_item.get('query_type', '')
+            query_results = result_item.get('results', [])
             
             if query_type == 'highest_value_opportunity' and query_results:
                 opp = query_results[0]
