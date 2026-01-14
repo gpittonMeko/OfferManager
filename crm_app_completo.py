@@ -8583,9 +8583,10 @@ def assistant():
             query_results = []
             
             try:
+                from sqlalchemy import text
+                
                 if query_type == 'top_opportunities':
                     # Top opportunità per valore
-                    from sqlalchemy import text
                     query = text("""
                         SELECT o.id, o.name, o.amount, o.stage, o.heat_level, o.supplier_category,
                                a.name as account_name, o.created_at
