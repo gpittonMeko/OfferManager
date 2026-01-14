@@ -1,0 +1,178 @@
+╔══════════════════════════════════════════════════════════════╗
+║                                                              ║
+║     SETUP AWS MANUALE - PASSO PASSO (SUPER SEMPLICE)        ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+
+
+📝 TUTTO QUELLO CHE DEVI FARE (20 minuti totali):
+══════════════════════════════════════════════════════════════
+
+
+PARTE 1: CREA SERVER AWS (10 minuti)
+══════════════════════════════════════════════════════════════
+
+PASSO 1: Accedi ad AWS
+   1. Vai su: https://console.aws.amazon.com
+   2. Login con il tuo account AWS
+   3. Cerca "EC2" nella barra di ricerca
+   4. Clicca su "EC2"
+
+
+PASSO 2: Crea Istanza
+   1. Bottone arancione "Launch Instance"
+   
+   2. Compila:
+      Nome: OfferManager-CRM
+      
+      OS (AMI): 
+         📌 Ubuntu Server 22.04 LTS
+         📌 Seleziona "Free tier eligible"
+      
+      Instance type:
+         📌 t2.micro (dovrebbe essere già selezionato)
+         📌 "Free tier eligible" sotto
+      
+      Key pair:
+         📌 Se hai LLM_14 → Selezionalo
+         📌 Altrimenti clicca "Create new key pair"
+            Nome: LLM_14
+            Tipo: RSA
+            .pem
+            Download (salvalo!)
+      
+      Network settings:
+         📌 ✅ Allow SSH traffic (from My IP)
+         📌 ✅ Allow HTTP traffic (from internet)
+         📌 Clicca "Edit"
+         📌 Aggiungi regola:
+            Type: Custom TCP
+            Port: 5000
+            Source: Anywhere
+   
+   3. Clicca "Launch Instance" (arancione)
+   
+   4. Aspetta 30 secondi
+   
+   5. Clicca sul nome istanza creata
+   
+   6. 📌 COPIA L'IP PUBBLICO
+      (es: 3.15.45.123)
+      Esempio: 54.123.45.67
+
+
+PARTE 2: DEPLOY AUTOMATICO (5 minuti)
+══════════════════════════════════════════════════════════════
+
+PASSO 3: Deploy con Script
+   1. Torna alla cartella OfferManager
+   
+   2. Doppio click: "DEPLOY_AUTOMATICO.bat"
+   
+   3. Quando chiede IP, incolla l'IP copiato prima
+   
+   4. Aspetta 5-10 minuti che:
+      - Carica file
+      - Installa Python e dipendenze
+      - Configura database
+      - Avvia servizio
+   
+   5. Si apre browser automaticamente!
+
+
+PARTE 3: USA! (Subito)
+══════════════════════════════════════════════════════════════
+
+PASSO 4: Login
+   Browser: http://TUO_IP_EC2:5000
+   
+   Username: marco
+   Password: demo123
+
+
+PASSO 5: Inserisci Prima Offerta
+   1. Tab "Nuova Offerta"
+   2. Compila:
+      Cliente: Test Srl
+      Categoria: Unitree
+      Valore: 50000
+      Quantità: 2
+   3. Clicca "Salva Offerta"
+   4. Dashboard aggiornata!
+
+
+PASSO 6: Vedi Grafici
+   Tab "Analytics" → Grafici generati!
+
+
+══════════════════════════════════════════════════════════════
+❓ DOMANDE FREQUENTI:
+══════════════════════════════════════════════════════════════
+
+Q: Quanto costa?
+A: GRATIS primo anno (t2.micro free tier)
+   Dopo: ~8€/mese
+
+Q: Posso spegnere quando non uso?
+A: Sì! E paghi €0 quando è spento
+
+Q: Come aggiungo altri commerciali?
+A: Nell'app, crea nuovi utenti (funzione admin)
+
+Q: L'IP cambia se riavvio?
+A: Sì, ma puoi allocare IP elastico (gratis se usato)
+
+Q: Come aggiorno il codice?
+A: Ricarica file con DEPLOY_AUTOMATICO.bat
+
+
+══════════════════════════════════════════════════════════════
+🆘 SE HAI PROBLEMI:
+══════════════════════════════════════════════════════════════
+
+"Permission denied chiave .pem"
+   → Segui istruzioni in AWS_DEPLOY_COMPLETO.md
+   → Fix permessi chiave
+
+"Non riesco a connettermi"
+   → Verifica Security Group abbia porta 5000 aperta
+   → Verifica IP pubblico sia corretto
+
+"Errore deploy script"
+   → Prova deploy manuale (vedi AWS_DEPLOY_COMPLETO.md)
+   → Oppure scrivi qui il messaggio errore
+
+
+══════════════════════════════════════════════════════════════
+📞 CONTATTI AWS:
+══════════════════════════════════════════════════════════════
+
+Console: https://console.aws.amazon.com
+Supporto: https://console.aws.amazon.com/support
+
+
+══════════════════════════════════════════════════════════════
+
+         🎯 INIZIA ADESSO:
+
+   1. Apri: https://console.aws.amazon.com/ec2
+   2. Clicca "Launch Instance"
+   3. Segui PASSO 2 sopra
+   4. Copia IP
+   5. Doppio click: "DEPLOY_AUTOMATICO.bat"
+
+══════════════════════════════════════════════════════════════
+
+
+🌐 ALTERNATIVA: Test Prima in Locale
+══════════════════════════════════════════════════════════════
+
+Doppio click: "🌐 TESTA CRM LOCALE.bat"
+Browser: http://localhost:5000
+Login: marco / demo123
+
+Testa tutte le funzioni, poi deploy su AWS!
+
+
+══════════════════════════════════════════════════════════════
+

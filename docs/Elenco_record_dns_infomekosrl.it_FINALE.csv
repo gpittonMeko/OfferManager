@@ -1,0 +1,28 @@
+"NOME","TTL","TIPO","VALORE"
+"infomekosrl.it.",900,"A","195.110.124.133"
+"infomekosrl.it.",900,"MX","10 mxa.eu.mailgun.org."
+"infomekosrl.it.",900,"MX","10 mxb.eu.mailgun.org."
+"authsmtp.infomekosrl.it.",900,"CNAME","authsmtp.register.it."
+"ftp.infomekosrl.it.",900,"CNAME","infomekosrl.it."
+"pop.infomekosrl.it.",900,"CNAME","mail.register.it."
+"www.infomekosrl.it.",900,"CNAME","infomekosrl.it."
+"pec.infomekosrl.it.",900,"MX","10 server.pec-email.com."
+"infomekosrl.it.",900,"TXT","v=spf1 include:spf.webapps.net ~all"
+"autoconfig.infomekosrl.it.",900,"CNAME","tb-it.securemail.pro."
+"_autodiscover._tcp.infomekosrl.it.",900,"SRV","10 10 443 ms-it.securemail.pro."
+"pec.infomekosrl.it.",900,"TXT","v=spf1 include:spf.pec-email.com ~all"
+"krs._domainkey.infomekosrl.it.",900,"TXT","k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC9Xdr3945BZxYyGrBvdccf21+A8jLdppS25Amj8Wv8QNCmP7UtWAItdJ3fVyy2gmG1VZb3TvqOe5zqW+R3J1Tvq8YSsvH6JCIKR6JCNb7PtBNsNXu3k8rDHHk/r/vhkwVlWha38QsWy3nF/2ugpv9fc/4vT/MwvnN7LNkZROMAKwIDAQAB"
+"email.infomekosrl.it.",900,"CNAME","eu.mailgun.org."
+"_dmarc.infomekosrl.it.",900,"TXT","v=DMARC1;p=none;"
+"k1._domainkey.infomekosrl.it.",900,"TXT","k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDCxIDzwyMg14JXVGv/AB9GcKmXkgmYRCkp8eOAvweyCNdLU9dKl4DoeRXgrT63dm5vxBR3wyaOnRBODOz1o3402e/E4fFkXR02QL9HPqyLoqPgI1CI7jy3wDkhKnUbRPSPVxHl2Sm9Bshjk0dFCAIy+eV2WnJZC5GMli1PAzmgMwIDAQAB"
+"s1._domainkey.infomekosrl.it.",900,"TXT","k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCyv+MPiEj5VfoD1q5AthXKSf0z2aL6n0Zh/wMxZi0EuP7mSFGXcTxx2nc0iTWkFoL67oGKu+GKx86t+L7GT8ctuTMldcURKKOYdFCCdgeDpnSv+++xaRQCo3G6k8IjgsEPRdPyoSDybo0MonISGg8FEm/gEdZ5rB6SZMw4W33HTwIDAQAB"
+"infomekosrl.it.",900,"TXT","v=spf1 include:spf.leadconnectorhq.com include:mailgun.org ~all"
+"crm.infomekosrl.it.",900,"A","13.53.183.146"
+"windmill.infomekosrl.it.",900,"A","13.53.183.146"
+
+
+
+
+
+
+

@@ -1,0 +1,165 @@
+══════════════════════════════════════════════════════════════
+           OFFERMANAGER SU CLOUD AWS
+          Guida Super Semplificata
+══════════════════════════════════════════════════════════════
+
+
+🎯 COSA OTTIENI:
+══════════════════════════════════════════════════════════════
+
+✅ App accessibile da Internet
+✅ Tutti in azienda possono usarla
+✅ Funziona su PC, tablet, smartphone
+✅ Non serve installare nulla
+✅ Costo: GRATIS primo anno, poi ~8€/mese
+
+
+🚀 SETUP IN 5 PASSI (10 minuti):
+══════════════════════════════════════════════════════════════
+
+PASSO 1: Crea Account AWS
+   ──────────────────────
+   1. Vai su: https://aws.amazon.com
+   2. Clicca "Crea account AWS"
+   3. Inserisci email e carta (non ti addebitano subito)
+   4. Completa registrazione
+
+
+PASSO 2: Crea Server EC2
+   ──────────────────────
+   1. Accedi ad AWS Console
+   2. Cerca "EC2" nella barra ricerca
+   3. Clicca "Launch Instance" (arancione)
+   4. Configurazione:
+      Nome: OfferManager
+      OS: Ubuntu Server 22.04 LTS
+      Tipo: t2.micro (FREE tier)
+      Key pair: Crea nuova (scarica .pem)
+      Network: ✅ Allow HTTP traffic
+   5. Clicca "Launch"
+
+
+PASSO 3: Connetti al Server
+   ─────────────────────────
+   Windows (usa PuTTY):
+      1. Scarica PuTTY: https://putty.org/
+      2. Converti .pem in .ppk con PuTTYgen
+      3. Connetti con PuTTY all'IP pubblico
+
+   Mac/Linux:
+      ssh -i "chiave.pem" ubuntu@<IP-PUBBLICO>
+
+
+PASSO 4: Carica File
+   ──────────────────
+   Opzione A - WinSCP (Windows):
+      1. Scarica WinSCP: https://winscp.net/
+      2. Connetti con chiave .ppk
+      3. Trascina file nella cartella /home/ubuntu
+
+   Opzione B - SCP (Mac/Linux):
+      scp -i chiave.pem app.py ubuntu@<IP>:/home/ubuntu/
+      (ripeti per tutti i file)
+
+
+PASSO 5: Deploy Automatico
+   ────────────────────────
+   Nel terminale SSH:
+   
+   cd /home/ubuntu/offermanager
+   chmod +x deploy_aws.sh
+   ./deploy_aws.sh
+
+   Aspetta 5-10 minuti che installi tutto
+
+
+══════════════════════════════════════════════════════════════
+✅ FINITO!
+══════════════════════════════════════════════════════════════
+
+Apri browser: http://<IP-PUBBLICO-EC2>
+
+Vedrai l'interfaccia OfferManager!
+
+
+══════════════════════════════════════════════════════════════
+📁 FILE DA CARICARE SU EC2:
+══════════════════════════════════════════════════════════════
+
+ESSENZIALI:
+   ✅ app.py
+   ✅ offer_generator.py
+   ✅ pdf_parser.py
+   ✅ docx_handler.py
+   ✅ company_searcher.py
+   ✅ offer_numbering.py
+   ✅ demo_products.py
+   ✅ requirements_cloud.txt
+   ✅ deploy_aws.sh
+   ✅ templates/app.html
+
+
+══════════════════════════════════════════════════════════════
+💡 ALTERNATIVA SUPER VELOCE:
+══════════════════════════════════════════════════════════════
+
+Testa prima in LOCALE:
+
+1. Doppio click: "🌐 TESTA WEB APP.bat"
+2. Apri browser: http://localhost:5000
+3. Vedi l'interfaccia
+4. Crea offerta di test
+5. Se funziona → Deploy su AWS
+
+
+══════════════════════════════════════════════════════════════
+🔧 GESTIONE POST-DEPLOY:
+══════════════════════════════════════════════════════════════
+
+Riavvia app:
+   sudo systemctl restart offermanager
+
+Vedi log:
+   sudo journalctl -u offermanager -f
+
+Aggiorna codice:
+   1. Carica nuovo file
+   2. sudo systemctl restart offermanager
+
+
+══════════════════════════════════════════════════════════════
+💰 COSTI:
+══════════════════════════════════════════════════════════════
+
+t2.micro (gratis primo anno):
+   Anno 1: €0 (Free Tier)
+   Anno 2+: ~€8/mese
+
+Risparmio:
+   - Spegni quando non usi → €0
+   - Reserved Instance → -40%
+
+
+══════════════════════════════════════════════════════════════
+🎯 INIZIO RACCOMANDATO:
+══════════════════════════════════════════════════════════════
+
+1. TESTA IN LOCALE:
+   Doppio click: "🌐 TESTA WEB APP.bat"
+   Apri: http://localhost:5000
+
+2. SE FUNZIONA:
+   Segui guida AWS sopra
+
+3. DEPLOY:
+   Carica file su EC2 ed esegui deploy_aws.sh
+
+
+══════════════════════════════════════════════════════════════
+
+        👉 INIZIA CON TEST LOCALE:
+
+        Doppio click: "🌐 TESTA WEB APP.bat"
+
+══════════════════════════════════════════════════════════════
+

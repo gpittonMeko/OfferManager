@@ -1,0 +1,76 @@
+===============================================================
+  CONFIGURAZIONE MAILGUN - ISTRUZIONI FINALI
+===============================================================
+
+✅ FILE CARICATI SU EC2:
+- mailgun_service.py
+- email_template_loader.py  
+- crm_app_completo.py (con modelli email marketing)
+- templates/app_mekocrm_completo.html (con menu Email Marketing)
+- Tutti i template email in templates/email/
+- requirements.txt aggiornato
+
+📋 PROSSIMI PASSI:
+
+1. RECUPERA LA CHIAVE API PRIVATA DI MAILGUN:
+   - Vai su: https://app.mailgun.com/app/api-keys
+   - Clicca sul Key ID: 67edcffb-98ade982
+   - Copia la CHIAVE PRIVATA (non l'ID!)
+   - Esempio: key-1234567890abcdef1234567890abcdef
+
+2. TROVA IL DOMINIO MAILGUN:
+   - Vai su: https://app.mailgun.com/app/sending/domains
+   - Copia il dominio verificato (es: sandbox123.mailgun.org)
+   - O usa il dominio che vedi nella dashboard
+
+3. CONFIGURA SU EC2:
+   
+   Connettiti a EC2:
+   ssh -i "C:\Users\user\Documents\LLM_14.pem" ubuntu@13.53.183.146
+   
+   Esegui lo script:
+   ~/configure_mailgun.sh
+   
+   Lo script ti chiederà:
+   - Mailgun API Key (la chiave privata copiata al punto 1)
+   - Mailgun Domain (il dominio copiato al punto 2)
+   - From Email (default: noreply@meko.it)
+   - From Name (default: ME.KO. Srl)
+   - API Region (default: eu)
+
+4. VERIFICA:
+   sudo systemctl status offermanager
+   
+   Dovresti vedere il servizio attivo.
+
+5. TESTA IL SISTEMA:
+   - Accedi al CRM su: http://13.53.183.146:8000
+   - Vai su "📧 Email Marketing" nel menu
+   - Crea una lista email
+   - Carica i template predefiniti: POST /api/email/templates/init-defaults
+   - Prova a inviare un'email di test
+
+===============================================================
+  PROBLEMI COMUNI:
+===============================================================
+
+❌ Errore "MAILGUN_API_KEY non configurato"
+   → Verifica che lo script configure_mailgun.sh sia stato eseguito
+   → Controlla: sudo systemctl show offermanager | grep MAILGUN
+
+❌ Email non vengono inviate
+   → Verifica che il dominio Mailgun sia verificato
+   → Controlla i log: sudo journalctl -u offermanager -f
+
+❌ Template non si caricano
+   → Verifica che la directory templates/email/ esista
+   → Controlla: ls -la /home/ubuntu/offermanager/templates/email/
+
+===============================================================
+
+
+
+
+
+
+

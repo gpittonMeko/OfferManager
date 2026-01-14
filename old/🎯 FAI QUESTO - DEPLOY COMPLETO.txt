@@ -1,0 +1,324 @@
+╔══════════════════════════════════════════════════════════════╗
+║                                                              ║
+║         🎯 DEPLOY COMPLETO AWS - COSTI MINIMI 💰            ║
+║                                                              ║
+║           Attivo solo 8-19 Lun-Ven = 2.60 €/mese           ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+
+
+📋 PROCEDURA COMPLETA IN 3 STEP (30 minuti totali)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+🔥 STEP 1: CREA ISTANZA EC2 (5 minuti)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Apri file:
+   📂 🔥 CREA ISTANZA EC2 - 5 MINUTI.txt
+
+2. Segui la guida passo-passo
+
+3. Configurazione ECONOMICA:
+   ✅ Tipo: t2.micro (Free Tier)
+   ✅ Storage: 8 GB
+   ✅ Chiave: LLM_14
+   ✅ Security Group: SSH + HTTP + porta 5000
+
+4. Alla fine avrai:
+   📍 IP Pubblico (es: 54.123.45.67)
+   🔑 Instance ID (es: i-0123456789abcdef)
+
+⚠️ ANNOTA questi 2 valori! Li serviranno dopo.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+🚀 STEP 2: DEPLOY APPLICAZIONE (10 minuti)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Doppio click su:
+   📂 DEPLOY_AUTOMATICO.bat
+
+2. Inserisci IP Pubblico (dallo STEP 1)
+
+3. Lo script:
+   ✅ Carica tutti i file su EC2
+   ✅ Installa Python e dipendenze
+   ✅ Configura Nginx
+   ✅ Avvia servizio
+   ✅ Testa connessione
+
+4. Alla fine:
+   🌐 Browser si apre automaticamente
+   👤 Login: marco / demo123
+
+5. ✅ APP FUNZIONANTE!
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+⏰ STEP 3: AUTOMAZIONE START/STOP (15 minuti)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Per risparmiare 67% (da 8€ a 2.60€/mese):
+
+OPZIONE A - Manuale (più semplice):
+  📂 Leggi: ⏰ AUTOMAZIONE START-STOP 8-19.txt
+  → Usa OPZIONE 3 (manuale da console AWS)
+  → Ogni mattina/sera start/stop manuale
+  → 2 minuti/giorno
+  → Da smartphone con app AWS Console
+
+OPZIONE B - Automatico (setup 15 min, poi zero effort):
+  📂 Leggi: ⏰ AUTOMAZIONE START-STOP 8-19.txt
+  → Usa OPZIONE 1 (AWS Instance Scheduler)
+  → Setup una volta, poi automatico per sempre
+  → Consigliato!
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+💰 COSTI FINALI
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Anno 1 (Free Tier):
+   COMPLETAMENTE GRATIS! 🎉
+
+✅ Anno 2+:
+   Con automazione 8-19 lun-ven:
+   
+   ┌────────────────────────────────────────────────┐
+   │ Istanza EC2 (55h/settimana):    2.60 €/mese   │
+   │ Storage 8GB:                    0.07 €/mese   │
+   │ Traffico (primi 100GB):         GRATIS         │
+   │ ────────────────────────────────────────────── │
+   │ TOTALE:                         2.67 €/mese   │
+   └────────────────────────────────────────────────┘
+
+💡 Meno di un caffè al bar! ☕
+
+Confronto:
+  • Server in ufficio: ~50-100 €/mese (corrente + manutenzione)
+  • Hosting condiviso: ~15-30 €/mese
+  • AWS ottimizzato: ~2.67 €/mese ⭐
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+📱 ACCESSO ALL'APP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+URL: http://IP-PUBBLICO-EC2
+
+Accessibile da:
+  ✅ PC Ufficio
+  ✅ PC Casa
+  ✅ Smartphone (iPhone/Android)
+  ✅ Tablet
+  ✅ Ovunque con internet!
+
+Login iniziale:
+  Username: marco
+  Password: demo123
+
+⚠️ IMPORTANTE: Cambia password al primo accesso!
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+⚠️ NOTA IMPORTANTE: IP DINAMICO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Con start/stop automatico, l'IP pubblico CAMBIA ogni giorno!
+
+COSA FARE:
+  1. Ogni mattina, vai su AWS Console
+  2. EC2 → Instances → OfferManager-CRM
+  3. Copia nuovo "Public IPv4 address"
+  4. Aggiorna bookmark
+
+ALTERNATIVE:
+  • Elastic IP (IP fisso): +3.60 €/mese (quando istanza OFF)
+  • Dominio + Route53: ~12 €/anno (più professionale)
+
+💡 Consiglio: Inizia con IP dinamico, poi valuta upgrade
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+📂 FILE UTILI
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📖 Guide:
+  • 🔥 CREA ISTANZA EC2 - 5 MINUTI.txt
+  • ⏰ AUTOMAZIONE START-STOP 8-19.txt
+  • 💰 COSTI AWS E RISPARMIO.txt
+  • GUIDA_DEPLOY_ECONOMICO.txt (dettagliata)
+
+🛠️ Script:
+  • DEPLOY_AUTOMATICO.bat (deploy app)
+  • GESTISCI_EC2_COSTI.bat (start/stop manuale)
+  • SETUP_AUTO_START_STOP.bat (automazione Lambda)
+
+📊 Documentazione:
+  • AWS_DEPLOY_COMPLETO.md
+  • AWS_SETUP.md
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+🔧 GESTIONE POST-DEPLOY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Per vedere stato istanza:
+  Console AWS → EC2 → Instances
+
+Per vedere costi:
+  Console AWS → Billing → Cost Explorer
+
+Per vedere log app:
+  ssh -i "C:\Users\user\Documents\LLM_14.pem" ubuntu@IP-EC2
+  sudo journalctl -u offermanager -f
+
+Per riavviare app:
+  ssh ubuntu@IP-EC2
+  sudo systemctl restart offermanager
+
+Per backup database:
+  scp -i LLM_14.pem ubuntu@IP:/home/ubuntu/offermanager/instance/*.db ./backup/
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+❓ TROUBLESHOOTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Problema: "Connection timeout" durante deploy
+  → Aspetta 2 minuti dopo creazione istanza
+  → Verifica Security Group (porta 22 aperta)
+
+Problema: "App non si apre" dopo deploy
+  → Aspetta 5 minuti per installazione completa
+  → Verifica porta 5000 aperta in Security Group
+  → Controlla log: sudo journalctl -u offermanager
+
+Problema: "Permission denied" con chiave SSH
+  → PowerShell come Admin:
+    icacls "C:\Users\user\Documents\LLM_14.pem" /inheritance:r
+    icacls "C:\Users\user\Documents\LLM_14.pem" /grant:r "%username%:R"
+
+Problema: Costi troppo alti
+  → Verifica che sia t2.micro (non t2.small!)
+  → Controlla che automation start/stop funzioni
+  → Console AWS → Billing → Cost Explorer
+
+Per altri problemi:
+  📂 GUIDA_DEPLOY_ECONOMICO.txt (sezione Troubleshooting)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+✅ CHECKLIST FINALE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Prima di iniziare, verifica di avere:
+  ☐ Account AWS (gratuito)
+  ☐ Carta di credito per verifica account
+  ☐ Chiave SSH (LLM_14.pem) in C:\Users\user\Documents\
+  ☐ 30 minuti di tempo
+  ☐ Connessione internet stabile
+
+Dopo STEP 1:
+  ☐ Istanza EC2 creata
+  ☐ Stato: Running (verde)
+  ☐ IP Pubblico annotato
+  ☐ Instance ID annotato
+
+Dopo STEP 2:
+  ☐ App accessibile da browser
+  ☐ Login funzionante
+  ☐ Dashboard visibile
+
+Dopo STEP 3:
+  ☐ Automazione configurata (o gestione manuale decisa)
+  ☐ Test start/stop effettuato
+  ☐ Bookmark IP aggiornato
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+🎯 NEXT STEPS (opzionali, dopo 1-2 mesi):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Se l'app ti piace e la usi tanto:
+
+1. Considera dominio personalizzato:
+   • Compra dominio (12 €/anno)
+   • Configura Route53
+   • Elastic IP gratuito quando istanza ON
+   • URL fisso: offermanager.tuodominio.it
+
+2. Setup backup automatici:
+   • Snapshot settimanali (0.40 €/mese)
+   • Backup database su S3 (0.10 €/mese)
+
+3. Monitoring avanzato:
+   • CloudWatch alarms gratis
+   • Notifiche email se app down
+
+4. SSL/HTTPS:
+   • Certbot gratuito
+   • Sicurezza extra
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+🚀 PRONTO?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+👉 Inizia con STEP 1:
+   Apri: 🔥 CREA ISTANZA EC2 - 5 MINUTI.txt
+
+💪 Ce la fai! È più facile di quanto sembri!
+
+💰 Risultato: CRM professionale cloud per meno di un caffè al mese!
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎉 Buon deploy! 🎉
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

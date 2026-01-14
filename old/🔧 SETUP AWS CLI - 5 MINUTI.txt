@@ -1,0 +1,217 @@
+╔══════════════════════════════════════════════════════════════╗
+║                                                              ║
+║         🔧 SETUP AWS CLI IN 5 MINUTI - PREREQUISITO 🔧      ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+
+
+📋 COSA SERVE:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Per usare gli script automatici, devi configurare AWS CLI una volta.
+Tempo: 5 minuti
+Poi: tutto automatico! 🎉
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+STEP 1️⃣ : INSTALLA AWS CLI
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Scarica installer Windows:
+   🌐 https://awscli.amazonaws.com/AWSCLIV2.msi
+
+2. Doppio click sul file scaricato
+
+3. Next → Next → Install
+
+4. ✅ Installato!
+
+5. Verifica:
+   - Apri PowerShell
+   - Digita: aws --version
+   - Deve apparire: aws-cli/2.x.x ...
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+STEP 2️⃣ : CREA ACCESS KEY SU AWS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Vai su AWS Console (browser):
+   🌐 https://console.aws.amazon.com/iam
+
+2. Nella barra di ricerca in alto, cerca: IAM
+
+3. Nel menu a sinistra: Users
+
+4. Se NON hai utenti:
+   ┌─────────────────────────────────────────────────────────┐
+   │ a) Clicca "Add users"                                   │
+   │ b) Username: OfferManager-Admin                         │
+   │ c) Access type: ✅ Programmatic access                  │
+   │ d) Next: Permissions                                    │
+   │ e) Attach policies directly:                            │
+   │    ✅ AmazonEC2FullAccess                               │
+   │    ✅ IAMFullAccess                                     │
+   │    ✅ AWSLambda_FullAccess                              │
+   │ f) Next → Next → Create user                           │
+   └─────────────────────────────────────────────────────────┘
+
+   Se HAI già un utente:
+   ┌─────────────────────────────────────────────────────────┐
+   │ a) Clicca sul tuo utente                                │
+   │ b) Tab "Security credentials"                           │
+   └─────────────────────────────────────────────────────────┘
+
+5. Nella sezione "Access keys":
+   - Clicca "Create access key"
+   - Use case: ✅ Command Line Interface (CLI)
+   - Spunta "I understand..."
+   - Next
+   - Description: "OfferManager Scripts"
+   - Create access key
+
+6. ⚠️ IMPORTANTE - Copia questi valori:
+   ┌─────────────────────────────────────────────────────────┐
+   │ Access key ID:     AKIA...........................     │
+   │ Secret access key: wJalr.........................       │
+   └─────────────────────────────────────────────────────────┘
+
+   💡 SALVA in un posto sicuro! Non li vedrai più!
+
+7. Clicca "Download .csv" (backup)
+
+8. ✅ Done
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+STEP 3️⃣ : CONFIGURA AWS CLI
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Apri PowerShell
+
+2. Digita:
+   aws configure
+
+3. Inserisci i valori (premi INVIO dopo ognuno):
+
+   AWS Access Key ID [None]: AKIA........................
+   (incolla Access Key ID dallo STEP 2)
+
+   AWS Secret Access Key [None]: wJalr...................
+   (incolla Secret Access Key dallo STEP 2)
+
+   Default region name [None]: eu-west-1
+   (Irlanda - più vicina e economica)
+
+   Default output format [None]: json
+   (o premi solo INVIO)
+
+4. ✅ Configurato!
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+STEP 4️⃣ : TEST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In PowerShell, digita:
+
+aws ec2 describe-regions
+
+Se vedi lista di regioni → ✅ TUTTO OK!
+
+Se vedi errore → ricontrolla Access Key
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+✅ PRONTO!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Ora puoi usare tutti gli script automatici:
+
+📂 1️⃣ CREA EC2 AUTOMATICO.bat
+   → Crea istanza EC2 con un click
+
+📂 2️⃣ DEPLOY_AUTOMATICO.bat
+   → Deploy app automatico
+
+📂 3️⃣ START_EC2.bat / STOP_EC2.bat
+   → Start/Stop istanza quando vuoi
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+🔒 SICUREZZA:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚠️ Le Access Key danno accesso completo al tuo account AWS!
+
+✅ Best practice:
+  • NON condividerle mai
+  • NON metterle su GitHub
+  • NON mandarle per email
+  • Sono salvate in: C:\Users\user\.aws\credentials
+  • Solo tu puoi accederle
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+❓ PROBLEMI?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Errore: "aws non riconosciuto"
+  → Riavvia PowerShell dopo installazione
+
+Errore: "Access Denied"
+  → Verifica Access Key corrette
+  → Verifica policy IAM (EC2FullAccess)
+
+Errore: "Region not found"
+  → Usa: eu-west-1 (Irlanda)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+🎯 NEXT STEP:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Dopo questo setup, vai su:
+
+📂 1️⃣ CREA EC2 AUTOMATICO.bat
+
+E crea l'istanza con un click! 🚀
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

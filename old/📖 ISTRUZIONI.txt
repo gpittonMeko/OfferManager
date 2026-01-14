@@ -1,0 +1,135 @@
+══════════════════════════════════════════════════════════════
+                    OFFERMANAGER
+             Configuratore di Offerte
+══════════════════════════════════════════════════════════════
+
+
+✅ L'ESEGUIBILE È STATO CREATO!
+══════════════════════════════════════════════════════════════
+
+File: dist\OfferManager.exe
+
+Dimensione: ~400 MB (include tutto il necessario)
+
+
+🚀 COME USARE:
+══════════════════════════════════════════════════════════════
+
+OPZIONE 1 - Doppio click diretto:
+   
+   1. Vai nella cartella "dist"
+   2. Trova "OfferManager.exe"
+   3. Doppio click su OfferManager.exe
+   
+   Si apre la finestra dell'app!
+
+
+OPZIONE 2 - Usa il launcher:
+   
+   Doppio click su: "▶️ AVVIA OFFERMANAGER.bat"
+   
+   Avvia automaticamente l'EXE
+
+
+══════════════════════════════════════════════════════════════
+💎 VANTAGGI DELL'.EXE:
+══════════════════════════════════════════════════════════════
+
+✅ Non serve Python installato
+✅ Funziona su qualsiasi PC Windows
+✅ Puoi copiarlo su chiavetta USB
+✅ Puoi distribuirlo ai colleghi
+✅ Doppio click e parte subito
+
+
+══════════════════════════════════════════════════════════════
+📂 DISTRIBUZIONE AD ALTRI PC:
+══════════════════════════════════════════════════════════════
+
+Per usare su altri computer:
+
+1. Copia il file: dist\OfferManager.exe
+2. Copia i PDF dei listini (nella stessa cartella)
+3. Incolla su altro PC
+4. Doppio click su OfferManager.exe
+
+FATTO! Non serve installare nulla!
+
+
+══════════════════════════════════════════════════════════════
+⚠️ ANTIVIRUS:
+══════════════════════════════════════════════════════════════
+
+Se l'antivirus blocca l'EXE (NORMALE con PyInstaller):
+
+1. Aggiungi eccezione nell'antivirus
+2. Oppure consenti l'esecuzione quando chiede
+3. È sicuro! È solo il tuo programma compilato
+
+
+══════════════════════════════════════════════════════════════
+📁 DOVE VENGONO SALVATE LE OFFERTE:
+══════════════════════════════════════════════════════════════
+
+Cartella: offerte_generate\
+(Viene creata automaticamente)
+
+Formato:
+   K0001-25 - CLIENTE - PRODOTTI - 03-11-2025\
+       ├── K0001-25 - CLIENTE - PRODOTTI - 03-11-2025.docx
+       └── K0001-25 - CLIENTE - PRODOTTI - 03-11-2025.pdf
+
+
+══════════════════════════════════════════════════════════════
+🎯 USA ADESSO:
+══════════════════════════════════════════════════════════════
+
+   Doppio click: dist\OfferManager.exe
+
+   O
+
+   Doppio click: "▶️ AVVIA OFFERMANAGER.bat"
+
+
+══════════════════════════════════════════════════════════════
+💡 PRIMO UTILIZZO DELL'APP:
+══════════════════════════════════════════════════════════════
+
+Quando si apre la finestra:
+
+1. TAB "Crea Offerta" (già aperto)
+   
+2. Nel campo grande scrivi:
+   "due unitree g1 bronze"
+   
+3. Nel campo cliente:
+   "Test Cliente Srl"
+   
+4. Clicca: "Genera Offerta"
+   
+5. Guarda il log sotto che mostra il progresso
+   
+6. Appare messaggio "Offerta creata!"
+   
+7. Vai nella cartella "offerte_generate" per trovarla
+
+
+══════════════════════════════════════════════════════════════
+📦 FILE NELLA CARTELLA:
+══════════════════════════════════════════════════════════════
+
+✅ dist\OfferManager.exe        👈 QUESTO È L'APP!
+✅ ▶️ AVVIA OFFERMANAGER.bat    👈 Launcher comodo
+✅ Crea Eseguibile.bat          → Ricrea EXE
+✅ Setup Iniziale.bat           → Setup Python
+✅ 📖 ISTRUZIONI.txt            → Questo file
+
+
+══════════════════════════════════════════════════════════════
+
+                👉 VAI IN CARTELLA "dist"
+                
+             Doppio click: OfferManager.exe
+
+══════════════════════════════════════════════════════════════
+

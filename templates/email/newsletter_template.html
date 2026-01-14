@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Newsletter ME.KO.</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5;">
+    <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f5f5f5;">
+        <tr>
+            <td align="center" style="padding: 20px 0;">
+                <table role="presentation" style="width: 100%; max-width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <!-- Header -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); padding: 30px; text-align: center;">
+                            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;">ME.KO. Newsletter</h1>
+                        </td>
+                    </tr>
+                    
+                    <!-- Greeting -->
+                    <tr>
+                        <td style="padding: 30px 30px 20px 30px;">
+                            <p style="margin: 0; color: #1e293b; font-size: 16px; line-height: 1.6;">
+                                Ciao <strong>%nome%</strong>,
+                            </p>
+                            <p style="margin: 15px 0 0 0; color: #64748b; font-size: 16px; line-height: 1.6;">
+                                Ecco le ultime novità dal mondo della robotica!
+                            </p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Main Content -->
+                    <tr>
+                        <td style="padding: 0 30px 30px 30px;">
+                            {{content}}
+                        </td>
+                    </tr>
+                    
+                    <!-- CTA Button -->
+                    <tr>
+                        <td style="padding: 0 30px 30px 30px; text-align: center;">
+                            <a href="https://www.meko.it" style="display: inline-block; padding: 14px 32px; background-color: #2563eb; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">Visita il nostro sito</a>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #f8fafc; padding: 30px; text-align: left; border-top: 1px solid #e2e8f0;">
+                            <!-- Signature -->
+                            <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e2e8f0;">
+                                <p style="margin: 0 0 8px 0; color: #1e293b; font-size: 14px; line-height: 1.8;">
+                                    <strong>Dott. Ing. Giovanni Pitton</strong><br>
+                                    📱 Mobile: +39 389 5333407<br>
+                                    ☎️ Office: +39 0421 336857<br>
+                                    <br>
+                                    <strong>ME.KO. SRL UNIPERSONALE</strong><br>
+                                    Via Alfred Nobel, 4<br>
+                                    30020 Noventa di Piave (VE) – Italy<br>
+                                    P.IVA / C.F. 04393900271 - REA: VE409498
+                                </p>
+                            </div>
+                            
+                            <!-- Disclaimer & Unsubscribe -->
+                            <p style="margin: 0 0 10px 0; color: #64748b; font-size: 11px; line-height: 1.6; text-align: justify;">
+                                <strong>Disclaimer GDPR:</strong> Questo messaggio e i suoi eventuali allegati sono destinati esclusivamente al destinatario indicato e possono contenere informazioni riservate e/o confidenziali. Qualora non foste il destinatario, siete pregati di non leggere, copiare, utilizzare o diffondere il contenuto a terzi. Vi invitiamo a contattare immediatamente il mittente e a cancellare il messaggio e i relativi allegati dal vostro sistema. Qualsiasi utilizzo non autorizzato del contenuto di questa e-mail è strettamente vietato e potrebbe costituire violazione di legge ai sensi del Regolamento Generale sulla Protezione dei Dati (GDPR - Regolamento UE 2016/679) e della normativa vigente applicabile.
+                            </p>
+                            <p style="margin: 15px 0 0 0; color: #94a3b8; font-size: 12px; text-align: center;">
+                                Hai ricevuto questa email perché sei iscritto alla nostra newsletter.<br>
+                                <a href="%unsubscribe_url%" style="color: #2563eb; text-decoration: none;">Cancella iscrizione</a>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+
+
+

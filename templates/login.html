@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - OfferManager CRM</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .logo img {
+            max-width: 300px;
+            height: auto;
+            margin-bottom: 15px;
+        }
+        
+        .logo h1 {
+            color: #667eea;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .logo p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+        
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .alert.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .alert.show { display: block; }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="logo">
+            <img src="{{ url_for('static', filename='meko_banner.png') }}" alt="MeKo ROBOTICA COLLABORATIVA">
+            <h1>📋 OfferManager</h1>
+            <p>Sistema CRM Offerte - ME.KO. Srl</p>
+        </div>
+
+        <div id="alert" class="alert"></div>
+
+        <form id="login-form" onsubmit="login(event)">
+            <div class="form-group">
+                <label>Username o Email</label>
+                <input type="text" id="username" required placeholder="username o email@esempio.com">
+            </div>
+
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="password" required>
+            </div>
+
+            <button type="submit" class="btn">🔐 Accedi</button>
+        </form>
+
+    </div>
+
+    <script>
+        // Carica credenziali salvate all'avvio
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedUsername = localStorage.getItem('crm_username');
+            const savedPassword = localStorage.getItem('crm_password');
+            const remember = localStorage.getItem('crm_remember');
+            
+            if (remember === 'true' && savedUsername && savedPassword) {
+                document.getElementById('username').value = savedUsername;
+                document.getElementById('password').value = savedPassword;
+                // Opzionale: auto-login
+                // document.getElementById('login-form').dispatchEvent(new Event('submit'));
+            }
+        });
+        
+        async function login(e) {
+            e.preventDefault();
+            
+            const btn = e.target.querySelector('button');
+            btn.disabled = true;
+            btn.textContent = 'Accesso...';
+            
+            try {
+                const res = await fetch('/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        username: document.getElementById('username').value,
+                        password: document.getElementById('password').value
+                    })
+                });
+                
+                // Verifica che la risposta sia JSON
+                const contentType = res.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    const text = await res.text();
+                    throw new Error('Risposta non valida dal server. Controlla i log.');
+                }
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    // Salva credenziali nello storage locale
+                    const username = document.getElementById('username').value;
+                    const password = document.getElementById('password').value;
+                    localStorage.setItem('crm_username', username);
+                    localStorage.setItem('crm_password', password);
+                    localStorage.setItem('crm_remember', 'true');
+                    
+                    // Redirect in base al ruolo
+                    window.location.href = '/app';
+                } else {
+                    const alert = document.getElementById('alert');
+                    alert.textContent = '❌ ' + (data.error || 'Credenziali errate');
+                    alert.className = 'alert error show';
+                    
+                    btn.disabled = false;
+                    btn.textContent = '🔐 Accedi';
+                }
+            } catch (err) {
+                const alert = document.getElementById('alert');
+                alert.textContent = '❌ Errore: ' + err.message;
+                alert.className = 'alert error show';
+                console.error('Errore login:', err);
+                btn.disabled = false;
+                btn.textContent = '🔐 Accedi';
+            }
+        }
+    </script>
+</body>
+</html>
+

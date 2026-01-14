@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generatore Offerte - OfferManager</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        .section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            color: #555;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border 0.3s;
+        }
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        .prodotti-list {
+            margin-top: 15px;
+        }
+        .prodotto-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .prodotto-info {
+            flex: 1;
+        }
+        .prodotto-code {
+            color: #667eea;
+            font-weight: 600;
+        }
+        .prodotto-prezzo {
+            color: #28a745;
+            font-weight: 600;
+            font-size: 18px;
+        }
+        .btn-remove {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .search-box {
+            position: relative;
+        }
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+        .search-results.active {
+            display: block;
+        }
+        .search-item {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .search-item:hover {
+            background: #f8f9fa;
+        }
+        .totale {
+            background: #28a745;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 600;
+            margin: 20px 0;
+        }
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .back-link {
+            display: inline-block;
+            color: #667eea;
+            text-decoration: none;
+            margin-bottom: 20px;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/dashboard" class="back-link">← Torna alla Dashboard</a>
+        
+        <h1>📝 Generatore Offerte Automatico</h1>
+        <p class="subtitle">Crea offerte professionali con DOCX e PDF automatici</p>
+        
+        <div id="alert-container"></div>
+        
+        <!-- Sezione Cliente -->
+        <div class="section">
+            <h2>🏢 Dati Cliente</h2>
+            <div class="form-group">
+                <label>Nome Azienda *</label>
+                <input type="text" id="cliente_nome" placeholder="Es: ACME Srl">
+            </div>
+            <div class="form-group">
+                <label>P.IVA</label>
+                <input type="text" id="cliente_piva" placeholder="Es: 12345678901">
+            </div>
+        </div>
+        
+        <!-- Sezione Prodotti -->
+        <div class="section">
+            <h2>🛒 Prodotti</h2>
+            <div class="form-group search-box">
+                <label>Cerca Prodotto nei Listini</label>
+                <input type="text" id="search_prodotto" placeholder="Es: Unitree G1, MiR100, UR10e...">
+                <div class="search-results" id="search_results"></div>
+            </div>
+            
+            <div class="form-group">
+                <label>Categoria</label>
+                <select id="categoria">
+                    <option value="MIR">MIR - Robot mobili</option>
+                    <option value="UR">Universal Robots - Cobot</option>
+                    <option value="Unitree">Unitree - Robot umanoidi/quadrupedi</option>
+                    <option value="Componenti">Componenti e accessori</option>
+                    <option value="Servizi">Servizi e formazione</option>
+                </select>
+            </div>
+            
+            <div id="prodotti_selezionati" class="prodotti-list"></div>
+            
+            <button class="btn btn-secondary" onclick="aggiungiProdottoManuale()">+ Aggiungi Manualmente</button>
+        </div>
+        
+        <!-- Sezione Riepilogo -->
+        <div class="section">
+            <h2>💰 Riepilogo</h2>
+            <div class="totale" id="totale_offerta">
+                Totale: € 0,00
+            </div>
+            
+            <div class="form-group">
+                <label>Note Aggiuntive</label>
+                <textarea id="note" placeholder="Note per l'offerta..."></textarea>
+            </div>
+        </div>
+        
+        <!-- Pulsanti Azione -->
+        <div style="text-align: center; margin-top: 30px;">
+            <button class="btn btn-success" onclick="generaOfferta()" style="font-size: 20px; padding: 15px 50px;">
+                🚀 GENERA OFFERTA (DOCX + PDF)
+            </button>
+        </div>
+    </div>
+    
+    <script>
+        let prodottiSelezionati = [];
+        
+        // Cerca prodotti nei listini
+        document.getElementById('search_prodotto').addEventListener('input', async function(e) {
+            const query = e.target.value;
+            const resultsDiv = document.getElementById('search_results');
+            
+            if (query.length < 2) {
+                resultsDiv.classList.remove('active');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/cerca-prodotti', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({query: query})
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.prodotti.length > 0) {
+                    resultsDiv.innerHTML = data.prodotti.map(p => `
+                        <div class="search-item" onclick='aggiungiProdotto(${JSON.stringify(p)})'>
+                            <div class="prodotto-code">${p.code}</div>
+                            <div>${p.nome}</div>
+                            <div style="font-size:12px; color:#888;">${p.listino}</div>
+                            <div style="color:#28a745; font-weight:600;">€ ${p.prezzo ? p.prezzo.toFixed(2) : 'N/A'}</div>
+                        </div>
+                    `).join('');
+                    resultsDiv.classList.add('active');
+                } else {
+                    resultsDiv.innerHTML = '<div class="search-item">Nessun prodotto trovato</div>';
+                    resultsDiv.classList.add('active');
+                }
+            } catch (error) {
+                console.error('Errore ricerca:', error);
+            }
+        });
+        
+        // Aggiungi prodotto dalla ricerca
+        function aggiungiProdotto(prodotto) {
+            const qty = prompt('Quantità:', '1');
+            if (!qty || isNaN(qty) || qty <= 0) return;
+            
+            prodottiSelezionati.push({
+                code: prodotto.code,
+                nome: prodotto.nome,
+                descrizione: prodotto.descrizione || '',
+                quantita: parseInt(qty),
+                prezzo: prodotto.prezzo || 0,
+                valore: (prodotto.prezzo || 0) * parseInt(qty)
+            });
+            
+            document.getElementById('search_results').classList.remove('active');
+            document.getElementById('search_prodotto').value = '';
+            aggiornaProdotti();
+        }
+        
+        // Aggiungi prodotto manualmente
+        function aggiungiProdottoManuale() {
+            const code = prompt('Codice prodotto:');
+            if (!code) return;
+            
+            const nome = prompt('Nome prodotto:');
+            if (!nome) return;
+            
+            const prezzo = parseFloat(prompt('Prezzo unitario (€):'));
+            if (isNaN(prezzo)) return;
+            
+            const qty = parseInt(prompt('Quantità:', '1'));
+            if (isNaN(qty) || qty <= 0) return;
+            
+            prodottiSelezionati.push({
+                code: code,
+                nome: nome,
+                descrizione: '',
+                quantita: qty,
+                prezzo: prezzo,
+                valore: prezzo * qty
+            });
+            
+            aggiornaProdotti();
+        }
+        
+        // Rimuovi prodotto
+        function rimuoviProdotto(index) {
+            prodottiSelezionati.splice(index, 1);
+            aggiornaProdotti();
+        }
+        
+        // Aggiorna lista prodotti
+        function aggiornaProdotti() {
+            const container = document.getElementById('prodotti_selezionati');
+            const totale = prodottiSelezionati.reduce((sum, p) => sum + p.valore, 0);
+            
+            if (prodottiSelezionati.length === 0) {
+                container.innerHTML = '<p style="color:#888; text-align:center; padding:20px;">Nessun prodotto aggiunto</p>';
+            } else {
+                container.innerHTML = prodottiSelezionati.map((p, idx) => `
+                    <div class="prodotto-item">
+                        <div class="prodotto-info">
+                            <div class="prodotto-code">${p.code}</div>
+                            <div>${p.nome}</div>
+                            <div style="font-size:12px; color:#666;">Quantità: ${p.quantita} × € ${p.prezzo.toFixed(2)}</div>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:15px;">
+                            <div class="prodotto-prezzo">€ ${p.valore.toFixed(2)}</div>
+                            <button class="btn-remove" onclick="rimuoviProdotto(${idx})">✕</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            document.getElementById('totale_offerta').textContent = `Totale: € ${totale.toLocaleString('it-IT', {minimumFractionDigits: 2})}`;
+        }
+        
+        // Genera offerta
+        async function generaOfferta() {
+            const cliente_nome = document.getElementById('cliente_nome').value;
+            const cliente_piva = document.getElementById('cliente_piva').value;
+            const categoria = document.getElementById('categoria').value;
+            const note = document.getElementById('note').value;
+            
+            if (!cliente_nome) {
+                mostraAlert('Inserisci il nome del cliente!', 'error');
+                return;
+            }
+            
+            if (prodottiSelezionati.length === 0) {
+                mostraAlert('Aggiungi almeno un prodotto!', 'error');
+                return;
+            }
+            
+            const totale = prodottiSelezionati.reduce((sum, p) => sum + p.valore, 0);
+            
+            try {
+                const response = await fetch('/api/genera-offerta', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        cliente_nome: cliente_nome,
+                        cliente_piva: cliente_piva,
+                        categoria: categoria,
+                        prodotti: prodottiSelezionati,
+                        valore_totale: totale,
+                        descrizione: note
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    mostraAlert(`✅ Offerta ${data.numero_offerta} generata con successo!<br>
+                                📄 DOCX: ${data.docx}<br>
+                                📄 PDF: ${data.pdf || 'Non generato'}<br>
+                                📁 Cartella: ${data.folder}`, 'success');
+                    
+                    // Reset form
+                    setTimeout(() => {
+                        if (confirm('Offerta creata! Vuoi crearne un\'altra?')) {
+                            location.reload();
+                        } else {
+                            location.href = '/dashboard';
+                        }
+                    }, 3000);
+                } else {
+                    mostraAlert('❌ Errore: ' + (data.error || 'Errore sconosciuto'), 'error');
+                }
+            } catch (error) {
+                mostraAlert('❌ Errore di connessione: ' + error.message, 'error');
+            }
+        }
+        
+        // Mostra alert
+        function mostraAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.innerHTML = message;
+            
+            const container = document.getElementById('alert-container');
+            container.innerHTML = '';
+            container.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+        
+        // Chiudi ricerca se clicco fuori
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.search-box')) {
+                document.getElementById('search_results').classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

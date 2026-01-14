@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket Supporto - MekoCRM</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5568d3;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg: #f8fafc;
+            --bg-secondary: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border-color: #e2e8f0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        .header-user {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .header-user span {
+            font-size: 14px;
+        }
+        
+        .button {
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .button:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .button.primary {
+            background: white;
+            color: var(--primary);
+            border: none;
+        }
+        
+        .button.primary:hover {
+            background: #f0f0f0;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 40px;
+        }
+        
+        .card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+        }
+        
+        .card h2 {
+            margin-bottom: 20px;
+            color: var(--text);
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group.full {
+            grid-column: 1 / -1;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text);
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .table-wrapper {
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        thead {
+            background: var(--bg);
+        }
+        
+        th {
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        td {
+            padding: 12px;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .tag.blue { background: #dbeafe; color: #1e40af; }
+        .tag.orange { background: #fed7aa; color: #9a3412; }
+        .tag.amber { background: #fef3c7; color: #92400e; }
+        .tag.green { background: #d1fae5; color: #065f46; }
+        .tag.red { background: #fee2e2; color: #991b1b; }
+        .tag.gray { background: #f3f4f6; color: #374151; }
+        
+        .table-search {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+        
+        .button.secondary {
+            padding: 6px 12px;
+            background: var(--bg);
+            color: var(--text);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+        
+        .button.secondary:hover {
+            background: var(--border-color);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        
+        .modal-content {
+            background: white;
+            margin: 40px auto;
+            max-width: 800px;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: var(--text-light);
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .close-modal:hover {
+            color: var(--text);
+        }
+        
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .alert.success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+        
+        .alert.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header {
+                padding: 16px 20px;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 12px;
+                align-items: flex-start;
+            }
+            
+            .header h1 {
+                font-size: 20px;
+            }
+            
+            .header-user {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .container {
+                margin: 20px auto;
+                padding: 0 16px;
+            }
+            
+            .card {
+                padding: 16px;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-group.full {
+                grid-column: 1;
+            }
+            
+            input, select, textarea {
+                min-height: 44px;
+                font-size: 16px; /* Previene zoom su iOS */
+            }
+            
+            button, .button {
+                min-height: 44px;
+                padding: 10px 16px;
+                touch-action: manipulation;
+            }
+            
+            .table-wrapper {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            table {
+                min-width: 600px;
+                font-size: 12px;
+            }
+            
+            th, td {
+                padding: 8px 6px !important;
+                font-size: 11px !important;
+            }
+            
+            .modal-content {
+                margin: 20px auto;
+                width: 95vw;
+                max-width: 95vw;
+            }
+            
+            .modal-header {
+                padding: 16px;
+            }
+            
+            .ticket-tabs {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            
+            .ticket-tab-btn {
+                padding: 8px 12px;
+                font-size: 13px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header {
+                padding: 12px 16px;
+            }
+            
+            .header h1 {
+                font-size: 18px;
+            }
+            
+            .container {
+                padding: 0 12px;
+            }
+            
+            .card {
+                padding: 12px;
+            }
+            
+            table {
+                min-width: 500px;
+                font-size: 11px;
+            }
+            
+            th, td {
+                padding: 6px 4px !important;
+                font-size: 10px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <h1>🎫 Ticket Supporto</h1>
+            <div class="header-user">
+                <span id="user-name">Cliente</span>
+                <a href="/logout" class="button">Logout</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h2>I Miei Ticket</h2>
+                <button class="button primary" onclick="showTicketForm()">+ Nuovo Ticket</button>
+            </div>
+            
+            <!-- Tab Navigation -->
+            <div style="display: flex; gap: 12px; margin-bottom: 24px; border-bottom: 2px solid var(--border-color); flex-wrap: wrap;">
+                <button class="email-tab-btn active" onclick="switchTicketTab('all')" data-ticket-tab="all">📋 Tutti</button>
+                <button class="email-tab-btn" onclick="switchTicketTab('open')" data-ticket-tab="open">🔓 Aperti</button>
+                <button class="email-tab-btn" onclick="switchTicketTab('closed')" data-ticket-tab="closed">✅ Chiusi</button>
+            </div>
+            
+            <input type="text" class="table-search" id="tickets-search" placeholder="🔍 Cerca ticket per numero, titolo..." onkeyup="filterTickets()">
+            
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Numero</th>
+                            <th>Titolo</th>
+                            <th>Prodotto</th>
+                            <th>Tipo Richiesta</th>
+                            <th>Priorità</th>
+                            <th>Stato</th>
+                            <th>Assegnato a</th>
+                            <th>Data Creazione</th>
+                            <th>Azioni</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tickets-table">
+                        <tr><td colspan="8" style="text-align: center; padding: 40px;">Caricamento...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Form Nuovo Ticket -->
+        <div class="card" id="ticket-form-card" style="display:none;">
+            <h2 style="margin-bottom: 20px;">Crea Nuovo Ticket</h2>
+            <form id="ticket-form" class="form-grid">
+                <div class="form-group full">
+                    <label>Titolo *</label>
+                    <input type="text" name="title" required placeholder="Breve descrizione del problema/richiesta">
+                </div>
+                <div class="form-group">
+                    <label>Tipo Richiesta</label>
+                    <select name="category">
+                        <option value="">-- Seleziona --</option>
+                        <option value="Supporto">Supporto</option>
+                        <option value="Richiesta">Richiesta</option>
+                        <option value="Bug">Bug</option>
+                        <option value="Altro">Altro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Prodotto *</label>
+                    <select name="product_category" required>
+                        <option value="">-- Seleziona Prodotto --</option>
+                        <option value="MiR">MiR</option>
+                        <option value="Universal Robots">Universal Robots</option>
+                        <option value="Unitree">Unitree</option>
+                        <option value="MiR, Universal Robots">MiR + Universal Robots</option>
+                        <option value="MiR, Unitree">MiR + Unitree</option>
+                        <option value="Universal Robots, Unitree">Universal Robots + Unitree</option>
+                        <option value="MiR, Universal Robots, Unitree">MiR + UR + Unitree</option>
+                        <option value="Altri Prodotti">Altri Prodotti</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Priorità</label>
+                    <select name="priority">
+                        <option value="Bassa">Bassa</option>
+                        <option value="Media" selected>Media</option>
+                        <option value="Alta">Alta</option>
+                        <option value="Urgente">Urgente</option>
+                    </select>
+                </div>
+                <div class="form-group full">
+                    <label>Descrizione *</label>
+                    <textarea name="description" required rows="6" placeholder="Descrivi in dettaglio il problema o la richiesta..."></textarea>
+                </div>
+                <div class="form-group full" style="display: flex; gap: 12px; justify-content: flex-end;">
+                    <button type="button" class="button secondary" onclick="hideTicketForm()">Annulla</button>
+                    <button type="submit" class="button primary">Crea Ticket</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        let currentTicketTab = 'all';
+        let allTickets = [];
+        
+        // Stili per tab
+        const style = document.createElement('style');
+        style.textContent = `
+            .email-tab-btn {
+                padding: 10px 20px;
+                background: transparent;
+                border: none;
+                border-bottom: 2px solid transparent;
+                cursor: pointer;
+                font-size: 14px;
+                color: var(--text-light);
+                transition: all 0.3s;
+            }
+            .email-tab-btn:hover {
+                color: var(--primary);
+            }
+            .email-tab-btn.active {
+                color: var(--primary);
+                border-bottom-color: var(--primary);
+            }
+        `;
+        document.head.appendChild(style);
+        
+        function switchTicketTab(tab) {
+            currentTicketTab = tab;
+            document.querySelectorAll('[data-ticket-tab]').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[data-ticket-tab="${tab}"]`)?.classList.add('active');
+            renderTickets();
+        }
+        
+        function filterTickets() {
+            renderTickets();
+        }
+        
+        function renderTickets() {
+            const tbody = document.getElementById('tickets-table');
+            let filtered = [...allTickets];
+            
+            // Filtro per tab
+            if (currentTicketTab === 'open') {
+                filtered = filtered.filter(t => ['Aperto', 'In Lavorazione', 'In Attesa Cliente'].includes(t.status));
+            } else if (currentTicketTab === 'closed') {
+                filtered = filtered.filter(t => t.status === 'Chiuso');
+            }
+            
+            // Filtro per ricerca
+            const searchTerm = document.getElementById('tickets-search')?.value.toLowerCase() || '';
+            if (searchTerm) {
+                filtered = filtered.filter(t => 
+                    (t.ticket_number || '').toLowerCase().includes(searchTerm) ||
+                    (t.title || '').toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            if (!filtered.length) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 40px;">Nessun ticket ${currentTicketTab !== 'all' ? `per il filtro selezionato` : ''}.</td></tr>`;
+                return;
+            }
+            
+            tbody.innerHTML = filtered.map(t => {
+                const statusColors = {
+                    'Aperto': 'blue',
+                    'In Lavorazione': 'orange',
+                    'In Attesa Cliente': 'amber',
+                    'Chiuso': 'green'
+                };
+                const priorityColors = {
+                    'Bassa': 'gray',
+                    'Media': 'blue',
+                    'Alta': 'orange',
+                    'Urgente': 'red'
+                };
+                const statusColor = statusColors[t.status] || 'blue';
+                const priorityColor = priorityColors[t.priority] || 'blue';
+                const createdDate = t.created_at ? new Date(t.created_at).toLocaleDateString('it-IT') : '';
+                
+                // Gestione categoria prodotto multipla
+                let productTags = '';
+                if (t.product_category) {
+                    if (t.product_category.includes(',')) {
+                        const products = t.product_category.split(',').map(p => p.trim());
+                        productTags = products.map(p => {
+                            const color = p.includes('MiR') || p.includes('MIR') ? 'blue' : 
+                                         p.includes('UR') || p.includes('Universal') ? 'purple' : 
+                                         p.includes('Unitree') ? 'green' : 'gray';
+                            return `<span class="tag ${color}" style="margin-right: 4px;">${p}</span>`;
+                        }).join('');
+                    } else {
+                        const color = t.product_category.includes('MiR') || t.product_category.includes('MIR') ? 'blue' : 
+                                     t.product_category.includes('UR') || t.product_category.includes('Universal') ? 'purple' : 
+                                     t.product_category.includes('Unitree') ? 'green' : 'gray';
+                        productTags = `<span class="tag ${color}">${t.product_category}</span>`;
+                    }
+                } else {
+                    productTags = '<span class="tag gray">-</span>';
+                }
+                
+                return `
+                    <tr>
+                        <td><strong style="color: var(--primary);">${t.ticket_number}</strong></td>
+                        <td><strong>${t.title}</strong></td>
+                        <td>${productTags}</td>
+                        <td><span class="tag">${t.category || '-'}</span></td>
+                        <td><span class="tag ${priorityColor}">${t.priority}</span></td>
+                        <td><span class="tag ${statusColor}">${t.status}</span></td>
+                        <td>${t.owner_name || '<em style="color: var(--text-light);">Non assegnato</em>'}</td>
+                        <td>${createdDate}</td>
+                        <td>
+                            <button class="button secondary" onclick="viewTicket(${t.id})" style="padding: 4px 8px; font-size: 12px;">Dettagli</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        async function loadTickets() {
+            try {
+                const res = await fetch('/api/tickets');
+                const data = await res.json();
+                
+                allTickets = data.tickets || [];
+                renderTickets();
+            } catch (err) {
+                console.error('Errore caricamento ticket:', err);
+            }
+        }
+        
+        function showTicketForm() {
+            document.getElementById('ticket-form-card').style.display = 'block';
+            document.getElementById('ticket-form-card').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function hideTicketForm() {
+            document.getElementById('ticket-form-card').style.display = 'none';
+            document.getElementById('ticket-form').reset();
+        }
+        
+        document.getElementById('ticket-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            
+            try {
+                const res = await fetch('/api/tickets', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                if (result.success) {
+                    alert(`✅ Ticket ${result.ticket.ticket_number} creato con successo!`);
+                    hideTicketForm();
+                    loadTickets();
+                } else {
+                    alert('Errore: ' + (result.error || 'Unknown'));
+                }
+            } catch (err) {
+                alert('Errore: ' + err.message);
+            }
+        });
+        
+        async function loadAttachments(ticketId) {
+            try {
+                const res = await fetch(`/api/tickets/${ticketId}/attachments`);
+                const data = await res.json();
+                const container = document.getElementById(`attachments-list-${ticketId}`);
+                
+                if (!container) return;
+                
+                if (!data.attachments || data.attachments.length === 0) {
+                    container.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-light);">Nessun allegato</div>';
+                    return;
+                }
+                
+                container.innerHTML = data.attachments.map(att => {
+                    const sizeMB = (att.file_size / (1024 * 1024)).toFixed(2);
+                    const icon = att.file_type === 'image' ? '🖼️' : '🎥';
+                    return `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; margin-bottom: 8px;">
+                            <div>
+                                <div style="font-weight: 500;">${icon} ${att.filename}</div>
+                                <div style="font-size: 12px; color: var(--text-light);">
+                                    ${sizeMB} MB ${att.is_compressed ? '(compresso)' : ''} - ${att.created_at ? new Date(att.created_at).toLocaleDateString('it-IT') : ''}
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <a href="/api/tickets/${ticketId}/attachments/${att.id}/download" class="button secondary" style="padding: 4px 8px; font-size: 12px; text-decoration: none;">⬇️ Scarica</a>
+                                <button onclick="deleteAttachment(${ticketId}, ${att.id})" class="button secondary" style="padding: 4px 8px; font-size: 12px; background: var(--danger); color: white; border: none;">🗑️ Elimina</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (err) {
+                console.error('Errore caricamento allegati:', err);
+                const container = document.getElementById(`attachments-list-${ticketId}`);
+                if (container) {
+                    container.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--danger);">Errore caricamento allegati</div>';
+                }
+            }
+        }
+        
+        async function loadStorageInfo(ticketId) {
+            try {
+                const res = await fetch('/api/storage/usage');
+                const data = await res.json();
+                const container = document.getElementById(`storage-info-${ticketId}`);
+                
+                if (!container) return;
+                
+                if (data.client_quota_mb > 0) {
+                    const percent = data.client_usage_percent || 0;
+                    const color = percent > 80 ? 'var(--danger)' : percent > 60 ? 'var(--warning)' : 'var(--success)';
+                    container.innerHTML = `
+                        <strong>Spazio utilizzato:</strong> ${data.client_usage_mb} MB / ${data.client_quota_mb} MB (${percent}%)
+                        <div style="width: 100%; height: 8px; background: var(--bg); border-radius: 4px; margin-top: 4px; overflow: hidden;">
+                            <div style="width: ${percent}%; height: 100%; background: ${color}; transition: width 0.3s;"></div>
+                        </div>
+                    `;
+                }
+            } catch (err) {
+                console.error('Errore caricamento info storage:', err);
+            }
+        }
+        
+        async function uploadAttachment(e, ticketId) {
+            e.preventDefault();
+            const form = e.target;
+            const fileInput = document.getElementById(`file-input-${ticketId}`);
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('Seleziona un file');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Caricamento...';
+            
+            try {
+                const res = await fetch(`/api/tickets/${ticketId}/attachments`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await res.json();
+                if (data.success) {
+                    alert('✅ File caricato con successo!');
+                    form.reset();
+                    loadAttachments(ticketId);
+                    loadStorageInfo(ticketId);
+                } else {
+                    alert('Errore: ' + (data.error || 'Unknown'));
+                }
+            } catch (err) {
+                alert('Errore: ' + err.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        }
+        
+        async function deleteAttachment(ticketId, attachmentId) {
+            if (!confirm('Vuoi eliminare questo file?')) return;
+            
+            try {
+                const res = await fetch(`/api/tickets/${ticketId}/attachments`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ attachment_id: attachmentId })
+                });
+                
+                const data = await res.json();
+                if (data.success) {
+                    alert('✅ File eliminato');
+                    loadAttachments(ticketId);
+                    loadStorageInfo(ticketId);
+                } else {
+                    alert('Errore: ' + (data.error || 'Unknown'));
+                }
+            } catch (err) {
+                alert('Errore: ' + err.message);
+            }
+        }
+        
+        async function viewTicket(ticketId) {
+            try {
+                const res = await fetch(`/api/tickets/${ticketId}`);
+                const data = await res.json();
+                const ticket = data.ticket;
+                
+                // Filtra commenti: clienti vedono solo quelli pubblici
+                const publicComments = (ticket.comments || []).filter(c => !c.is_internal);
+                
+                let commentsHtml = '';
+                if (publicComments.length > 0) {
+                    commentsHtml = publicComments.map(c => `
+                        <div style="padding: 12px; border-bottom: 1px solid var(--border-color); background: #f0f9ff; border-left: 3px solid var(--primary);">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <div>
+                                    <strong>${c.user_name}</strong>
+                                    <span style="margin-left: 8px; padding: 2px 8px; background: var(--primary); color: white; border-radius: 12px; font-size: 11px;">👤 Pubblico</span>
+                                </div>
+                                <small style="color: var(--text-light);">${c.created_at ? new Date(c.created_at).toLocaleString('it-IT') : ''}</small>
+                            </div>
+                            <div style="color: var(--text);">${c.message.replace(/\n/g, '<br>')}</div>
+                        </div>
+                    `).join('');
+                } else {
+                    commentsHtml = '<div style="padding: 20px; text-align: center; color: var(--text-light);">Nessun commento pubblico</div>';
+                }
+                
+                const modal = `
+                    <div id="ticket-modal" class="modal" style="display: block;">
+                        <div class="modal-content" style="max-width: 800px;">
+                            <div class="modal-header">
+                                <h3>Ticket ${ticket.ticket_number}</h3>
+                                <button class="close-modal" onclick="closeTicketModal()">&times;</button>
+                            </div>
+                            <div style="padding: 24px;">
+                                <div style="margin-bottom: 24px;">
+                                    <h4 style="margin-bottom: 8px;">${ticket.title}</h4>
+                                    <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+                                        ${ticket.product_category ? `<span class="tag" style="background: var(--primary); color: white;">${ticket.product_category}</span>` : ''}
+                                        <span class="tag">${ticket.category || '-'}</span>
+                                        <span class="tag">${ticket.priority}</span>
+                                        <span class="tag">${ticket.status}</span>
+                                    </div>
+                                    <div style="background: var(--bg); padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+                                        <strong>Descrizione:</strong>
+                                        <div style="margin-top: 8px; white-space: pre-wrap;">${ticket.description}</div>
+                                    </div>
+                                    <div style="background: #f8fafc; padding: 16px; border-radius: 8px; margin-bottom: 16px; border: 1px solid var(--border-color);">
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                                            <div>
+                                                <strong style="color: var(--text-light); font-size: 12px; text-transform: uppercase;">Cliente</strong>
+                                                <div style="font-size: 16px; font-weight: 600; margin-top: 4px;">${ticket.customer_name || 'Tu'}</div>
+                                            </div>
+                                            <div>
+                                                <strong style="color: var(--text-light); font-size: 12px; text-transform: uppercase;">Assegnato a</strong>
+                                                <div style="font-size: 16px; margin-top: 4px;">${ticket.owner_name ? `<span style="color: var(--primary);">${ticket.owner_name}</span>` : '<em style="color: var(--text-light);">Non assegnato</em>'}</div>
+                                            </div>
+                                            <div>
+                                                <strong style="color: var(--text-light); font-size: 12px; text-transform: uppercase;">Creato</strong>
+                                                <div style="font-size: 14px; margin-top: 4px;">${ticket.created_at ? new Date(ticket.created_at).toLocaleString('it-IT') : '-'}</div>
+                                            </div>
+                                            <div>
+                                                <strong style="color: var(--text-light); font-size: 12px; text-transform: uppercase;">Ultimo Aggiornamento</strong>
+                                                <div style="font-size: 14px; margin-top: 4px;">${ticket.updated_at ? new Date(ticket.updated_at).toLocaleString('it-IT') : '-'}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div style="border-top: 1px solid var(--border-color); padding-top: 24px; margin-top: 24px;">
+                                    <h4 style="margin-bottom: 16px;">Allegati</h4>
+                                    <div id="attachments-list-${ticketId}" style="margin-bottom: 16px;">
+                                        <div style="text-align: center; padding: 20px; color: var(--text-light);">Caricamento...</div>
+                                    </div>
+                                    <form id="ticket-attachment-form-${ticketId}" onsubmit="uploadAttachment(event, ${ticketId})" enctype="multipart/form-data" style="margin-bottom: 16px;">
+                                        <input type="file" name="file" id="file-input-${ticketId}" accept="image/*,video/*" required style="margin-bottom: 8px;">
+                                        <button type="submit" class="button primary">📎 Carica File</button>
+                                        <small style="display: block; margin-top: 4px; color: var(--text-light);">Immagini (JPG, PNG) o Video (MP4) - Max 500MB. I file verranno compressi automaticamente.</small>
+                                    </form>
+                                    <div id="storage-info-${ticketId}" style="padding: 12px; background: var(--bg); border-radius: 6px; font-size: 12px; color: var(--text-light);"></div>
+                                </div>
+                                
+                                <div style="border-top: 1px solid var(--border-color); padding-top: 24px; margin-top: 24px;">
+                                    <h4 style="margin-bottom: 16px;">Commenti</h4>
+                                    <div style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 16px;">
+                                        ${commentsHtml}
+                                    </div>
+                                    <form id="ticket-comment-form" onsubmit="addTicketComment(event, ${ticketId})">
+                                        <textarea name="message" required rows="3" placeholder="Aggiungi un commento..." style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; margin-bottom: 8px;"></textarea>
+                                        <button type="submit" class="button primary">Invia Commento</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.insertAdjacentHTML('beforeend', modal);
+                
+                // Carica allegati e info storage
+                loadAttachments(ticketId);
+                loadStorageInfo(ticketId);
+            } catch (err) {
+                alert('Errore: ' + err.message);
+            }
+        }
+        
+        function closeTicketModal() {
+            const modal = document.getElementById('ticket-modal');
+            if (modal) modal.remove();
+        }
+        
+        async function addTicketComment(e, ticketId) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = {
+                message: formData.get('message'),
+                is_internal: false
+            };
+            
+            try {
+                const res = await fetch(`/api/tickets/${ticketId}/comments`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                if (result.success) {
+                    closeTicketModal();
+                    viewTicket(ticketId);
+                    loadTickets();
+                } else {
+                    alert('Errore: ' + (result.error || 'Unknown'));
+                }
+            } catch (err) {
+                alert('Errore: ' + err.message);
+            }
+        }
+        
+        // Carica dati iniziali
+        window.addEventListener('DOMContentLoaded', () => {
+            loadTickets();
+            // Carica nome utente
+            fetch('/api/user/info')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.user) {
+                        document.getElementById('user-name').textContent = `${data.user.first_name} ${data.user.last_name}`.trim() || data.user.email;
+                    }
+                })
+                .catch(err => console.error('Errore caricamento info utente:', err));
+        });
+    </script>
+</body>
+</html>

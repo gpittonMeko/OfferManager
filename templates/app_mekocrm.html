@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MekoCRM - ME.KO. Srl</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #2563eb;
+            --primary-light: #eff6ff;
+            --secondary: #f97316;
+            --text-dark: #1e293b;
+            --text-light: #64748b;
+            --bg-light: #f8fafc;
+            --border-color: #e2e8f0;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --warning: #facc15;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-dark);
+        }
+        
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: white;
+            border-right: 1px solid var(--border-color);
+            padding: 24px;
+            overflow-y: auto;
+        }
+        
+        .logo h1 {
+            font-size: 24px;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+        
+        .logo p {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+        
+        .nav-menu {
+            margin-top: 32px;
+        }
+        
+        .nav-item {
+            padding: 12px 16px;
+            margin-bottom: 4px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-dark);
+            transition: all 0.2s;
+        }
+        
+        .nav-item:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+        
+        .nav-item.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .content {
+            margin-left: 260px;
+            padding: 32px;
+        }
+        
+        .hero {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+        }
+        
+        .hero h2 {
+            font-size: 30px;
+            font-weight: 700;
+        }
+        
+        .hero-actions {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .button {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .button {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .button:hover {
+            background: #1d4ed8;
+        }
+        
+        .button.secondary {
+            background: var(--bg-light);
+            color: var(--text-dark);
+            border: 1px solid var(--border-color);
+        }
+        
+        .button.secondary:hover {
+            background: white;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+        }
+        
+        .table-wrapper {
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 2px solid var(--border-color);
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        
+        td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .view {
+            display: none;
+        }
+        
+        .view.active {
+            display: block;
+        }
+        
+        .price-levels {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        
+        .price-pill {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        
+        .modal-header h3 {
+            font-size: 24px;
+            font-weight: 700;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-light);
+        }
+        
+        .price-input-group {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 16px;
+            padding: 12px;
+            background: var(--bg-light);
+            border-radius: 8px;
+        }
+        
+        .price-input-group label {
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        
+        .price-input-group input {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .sync-button {
+            background: var(--success);
+            color: white;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .sync-button:hover {
+            background: #16a34a;
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="logo">
+            <h1>MekoCRM</h1>
+            <p>Sales & Offer Management</p>
+        </div>
+        <nav class="nav-menu">
+            <div class="nav-item active" data-target="dashboard-view">Dashboard</div>
+            <div class="nav-item" data-target="leads-view">Leads</div>
+            <div class="nav-item" data-target="accounts-view">Accounts</div>
+            <div class="nav-item" data-target="opportunities-view">Opportunità</div>
+            <div class="nav-item" data-target="products-view">Listini</div>
+            <div class="nav-item" data-target="offers-view">Offer Generator</div>
+            <a href="/logout" class="nav-item">Logout</a>
+        </nav>
+    </aside>
+
+    <main class="content">
+        <!-- Dashboard -->
+        <section id="dashboard-view" class="view active">
+            <div class="hero">
+                <div>
+                    <h2>Dashboard</h2>
+                    <p class="subtext">Visione sintetica della pipeline</p>
+                </div>
+                <div class="hero-actions">
+                    <button class="button sync-button" onclick="syncPricebook()">🔄 Sincronizza Listini</button>
+                </div>
+            </div>
+            <div class="grid three" id="dashboard-metrics"></div>
+        </section>
+
+        <!-- Products/Listini -->
+        <section id="products-view" class="view">
+            <div class="hero">
+                <div>
+                    <h2>Listini Prodotti</h2>
+                    <p class="subtext">Gestisci prodotti e prezzi</p>
+                </div>
+                <div class="hero-actions">
+                    <button class="button sync-button" onclick="syncPricebook()">🔄 Sincronizza Listini</button>
+                </div>
+            </div>
+            <div class="card">
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Codice</th>
+                                <th>Nome</th>
+                                <th>Categoria</th>
+                                <th>Prezzi</th>
+                                <th>Azioni</th>
+                            </tr>
+                        </thead>
+                        <tbody id="products-table"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Altre viste placeholder -->
+        <section id="leads-view" class="view">
+            <h2>Leads</h2>
+        </section>
+        <section id="accounts-view" class="view">
+            <h2>Accounts</h2>
+        </section>
+        <section id="opportunities-view" class="view">
+            <h2>Opportunità</h2>
+        </section>
+        <section id="offers-view" class="view">
+            <h2>Offer Generator</h2>
+        </section>
+    </main>
+
+    <!-- Modal Modifica Prezzi -->
+    <div id="price-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Modifica Prezzi - <span id="modal-product-name"></span></h3>
+                <button class="close-modal" onclick="closePriceModal()">&times;</button>
+            </div>
+            <div id="modal-price-inputs"></div>
+            <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
+                <button class="button secondary" onclick="closePriceModal()">Annulla</button>
+                <button class="button" onclick="savePrices()">Salva Modifiche</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentProduct = null;
+        const views = document.querySelectorAll('.view');
+        const navItems = document.querySelectorAll('.nav-item[data-target]');
+
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                navItems.forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                const target = item.getAttribute('data-target');
+                views.forEach(view => view.classList.toggle('active', view.id === target));
+                if (target === 'products-view') loadProducts();
+                if (target === 'dashboard-view') loadDashboard();
+            });
+        });
+
+        async function loadDashboard() {
+            try {
+                const res = await fetch('/api/dashboard/summary');
+                const data = await res.json();
+                const container = document.getElementById('dashboard-metrics');
+                container.innerHTML = `
+                    <div class="card">
+                        <div style="font-size: 32px; font-weight: 700; color: var(--primary);">${data.metrics.leads}</div>
+                        <div style="color: var(--text-light);">Leads</div>
+                    </div>
+                    <div class="card">
+                        <div style="font-size: 32px; font-weight: 700; color: var(--primary);">${data.metrics.accounts}</div>
+                        <div style="color: var(--text-light);">Accounts</div>
+                    </div>
+                    <div class="card">
+                        <div style="font-size: 32px; font-weight: 700; color: var(--primary);">€${data.metrics.pipeline.toLocaleString('it-IT')}</div>
+                        <div style="color: var(--text-light);">Pipeline</div>
+                    </div>
+                `;
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function loadProducts() {
+            try {
+                const res = await fetch('/api/products');
+                const data = await res.json();
+                const tbody = document.getElementById('products-table');
+                
+                if (!data.products.length) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px;">Nessun prodotto. Clicca "Sincronizza Listini" per caricare i prodotti.</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = data.products.map(prod => {
+                    // Mostra TUTTI i livelli di prezzo
+                    const allPrices = prod.prices || [];
+                    const priceDisplay = allPrices.map(p => 
+                        `<span class="price-pill">${p.price_level}: €${p.amount.toLocaleString('it-IT', {minimumFractionDigits: 2})}</span>`
+                    ).join('');
+                    
+                    return `
+                        <tr>
+                            <td><strong>${prod.code}</strong></td>
+                            <td>${prod.name}</td>
+                            <td>${prod.category || '-'}</td>
+                            <td><div class="price-levels">${priceDisplay || 'Nessun prezzo'}</div></td>
+                            <td><button class="button secondary" onclick="openPriceModal(${prod.id})">Modifica</button></td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function openPriceModal(productId) {
+            try {
+                const res = await fetch('/api/products');
+                const data = await res.json();
+                const product = data.products.find(p => p.id === productId);
+                
+                if (!product) return;
+                
+                currentProduct = product;
+                document.getElementById('modal-product-name').textContent = `${product.code} - ${product.name}`;
+                
+                // Crea input per tutti i livelli di prezzo esistenti
+                const container = document.getElementById('modal-price-inputs');
+                const allPrices = product.prices || [];
+                
+                if (allPrices.length === 0) {
+                    container.innerHTML = '<p>Nessun prezzo configurato. Sincronizza i listini prima.</p>';
+                } else {
+                    container.innerHTML = allPrices.map(p => `
+                        <div class="price-input-group">
+                            <label>${p.price_level} ${p.is_override ? '(Override)' : ''}</label>
+                            <input type="number" step="0.01" value="${p.amount}" data-level="${p.price_level}" placeholder="Prezzo EUR">
+                        </div>
+                    `).join('');
+                }
+                
+                document.getElementById('price-modal').classList.add('active');
+            } catch (err) {
+                console.error(err);
+                alert('Errore nel caricamento prodotto');
+            }
+        }
+
+        function closePriceModal() {
+            document.getElementById('price-modal').classList.remove('active');
+            currentProduct = null;
+        }
+
+        async function savePrices() {
+            if (!currentProduct) return;
+            
+            const inputs = document.querySelectorAll('#modal-price-inputs input');
+            const updates = [];
+            
+            inputs.forEach(input => {
+                const level = input.dataset.level;
+                const newValue = parseFloat(input.value);
+                if (!isNaN(newValue) && newValue >= 0) {
+                    updates.push({ price_level: level, amount: newValue });
+                }
+            });
+            
+            try {
+                for (const update of updates) {
+                    await fetch(`/api/products/${currentProduct.id}/prices`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(update)
+                    });
+                }
+                alert('Prezzi aggiornati con successo!');
+                closePriceModal();
+                loadProducts();
+            } catch (err) {
+                console.error(err);
+                alert('Errore nel salvataggio');
+            }
+        }
+
+        async function syncPricebook() {
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Sincronizzazione...';
+            
+            try {
+                const res = await fetch('/api/pricebook/sync', { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    alert(`✓ ${data.message}`);
+                    loadProducts();
+                    loadDashboard();
+                } else {
+                    alert('Errore: ' + (data.error || 'Sincronizzazione fallita'));
+                }
+            } catch (err) {
+                alert('Errore: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        }
+
+        // Carica dashboard all'avvio
+        loadDashboard();
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+

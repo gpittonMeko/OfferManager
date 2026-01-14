@@ -1,0 +1,140 @@
+══════════════════════════════════════════════════════════════
+          OFFERMANAGER CRM - SISTEMA FINALE
+══════════════════════════════════════════════════════════════
+
+
+🎯 SISTEMA COMPLETO AVVIATO!
+══════════════════════════════════════════════════════════════
+
+Apri browser: http://localhost:5000
+Login: marco / demo123
+
+
+✨ TUTTO INTEGRATO:
+══════════════════════════════════════════════════════════════
+
+✅ 40+ PRODOTTI da tutti i listini:
+   • Unitree (G1, H1, GO2, B2, A2, R1 + varianti)
+   • UR (UR3e, UR5e, UR10e, UR12e, UR16e, UR20)
+   • MIR (MIR100, 250, 600, 1200 + accessori)
+   • ROEQ (Gripper, Vision, Sensori)
+   • Servizi (Formazione, Supporto, etc)
+
+✅ GENERATORE AUTOMATICO:
+   Scrivi: "due unitree g1 bronze"
+   → Crea automaticamente offerta con prezzi!
+
+✅ CARTELLE IN K:\:
+   Crea cartella in: K:\OFFERTE - K\OFFERTE 2025 - K
+   Formato: K####-YY - CLIENTE - PRODOTTO - DATA
+   Genera DOCX + PDF dentro
+
+✅ DASHBOARD CON GRAFICI:
+   • Vista Excel divisa per mese
+   • Grafici timeline per categoria
+   • Grafici a torta
+   • Stats in tempo reale
+
+✅ GESTIONE LEAD:
+   • Inserisci contatti
+   • Traccia interesse
+   • Stato e priorità
+
+
+📊 5 TAB DISPONIBILI:
+══════════════════════════════════════════════════════════════
+
+1. 🤖 Genera Offerta Auto
+      → Linguaggio naturale
+      → Calcolo automatico prezzi
+      → Creazione DOCX + PDF
+      → Cartella in K:\
+
+2. ➕ Inserisci Manuale
+      → Form classico
+      → Per offerte custom
+
+3. 👤 Lead & Contatti
+      → Aggiungi lead
+      → Tabella contatti
+      → Stato pipeline
+
+4. 📊 Vista Excel
+      → Tabella per MESE
+      → Filtri categoria
+      → Totali per mese
+
+5. 📈 Grafici
+      → Timeline categorie
+      → Torta distribuzione
+      → Per stato
+
+
+🎨 ESEMPIO USO COMPLETO:
+══════════════════════════════════════════════════════════════
+
+SCENARIO 1: Genera offerta automatica
+   1. Tab "Genera Offerta Auto"
+   2. Scrivi: "due ur10e silver e un gripper gold"
+   3. Cliente: "Acme Srl"
+   4. Clicca "Genera"
+   5. ✅ Crea cartella in K:\
+   6. ✅ Genera Word + PDF
+   7. ✅ Salva in database
+   8. ✅ Aggiorna dashboard
+
+
+SCENARIO 2: Inserisci lead
+   1. Tab "Lead & Contatti"
+   2. Nome: "Mario Bianchi"
+   3. Azienda: "Test Industries"
+   4. Interesse: "MIR"
+   5. Priorità: "Alta"
+   6. Salva
+
+
+SCENARIO 3: Vedi performance
+   1. Tab "Vista Excel"
+      → Vedi tutte offerte per mese
+   
+   2. Tab "Grafici"
+      → Vedi andamento temporale
+      → Vedi distribuzione categorie
+
+
+📂 DOVE TROVA I FILE:
+══════════════════════════════════════════════════════════════
+
+Cartelle offerte create in:
+   K:\OFFERTE - K\OFFERTE 2025 - K\
+
+Se K:\ non accessibile, usa fallback:
+   ./offerte_k_drive\
+
+Formato cartella:
+   K2001-25 - ACME SRL - 2x UR10e - 03-11-2025\
+       ├── K2001-25 - ACME SRL - 2x UR10e - 03-11-2025.docx
+       └── K2001-25 - ACME SRL - 2x UR10e - 03-11-2025.pdf
+
+
+🌐 DEPLOY SU AWS:
+══════════════════════════════════════════════════════════════
+
+Quando pronto, deploy su cloud:
+   Doppio click: "DEPLOY_AUTOMATICO.bat"
+
+Accessibile da tutta l'azienda!
+
+
+══════════════════════════════════════════════════════════════
+
+         👉 APRI BROWSER ADESSO:
+
+            http://localhost:5000
+            
+            marco / demo123
+
+         Prova il generatore automatico!
+
+══════════════════════════════════════════════════════════════
+

@@ -1,0 +1,191 @@
+╔══════════════════════════════════════════════════════════════╗
+║                                                              ║
+║    🚀 DEPLOY OFFERMANAGER SU AWS - COSTI MINIMI 💰         ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+
+📊 COSTI:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ t2.micro (Free Tier):
+   • ANNO 1:  GRATIS (750 ore/mese = sempre accesa gratis)
+   • ANNO 2+: ~8€/mese se sempre accesa
+              ~0€/mese se la stoppi quando non serve
+
+✅ Storage (30GB):
+   • ~3€/anno
+
+✅ Traffico dati:
+   • Primo 100GB/mese: GRATIS
+   • Poi: 0.09€/GB
+
+💰 TOTALE: GRATIS il primo anno, poi 8-10€/mese
+   (o QUASI GRATIS se la stoppi quando non serve!)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+🎯 PROCEDURA DEPLOY (15 minuti)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 1: CREA ISTANZA EC2 (5 minuti)
+────────────────────────────────────────────────────────────────
+1. Vai su: https://console.aws.amazon.com/ec2
+
+2. Clicca "Launch Instance" (arancione)
+
+3. Configurazione ECONOMICA:
+   ┌─────────────────────────────────────────────────────────┐
+   │ Name:                  OfferManager-CRM                 │
+   │ AMI:                   Ubuntu Server 22.04 LTS          │
+   │ Architecture:          64-bit (x86)                     │
+   │ Instance type:         t2.micro ← FREE TIER! ✅         │
+   │ Key pair:              LLM_14 (se esiste)               │
+   │                        oppure crea nuova                │
+   │                                                          │
+   │ Security Group (Firewall):                              │
+   │   • SSH (22):          My IP (il tuo)                   │
+   │   • HTTP (80):         0.0.0.0/0 (tutti)                │
+   │   • Custom (5000):     0.0.0.0/0 (per test)             │
+   │                                                          │
+   │ Storage:               8 GB gp3 ← MINIMO! ✅            │
+   └─────────────────────────────────────────────────────────┘
+
+4. Clicca "Launch Instance" ✅
+
+
+STEP 2: VERIFICA KEY PAIR
+────────────────────────────────────────────────────────────────
+Se hai usato chiave "LLM_14":
+   ✅ È già in: C:\Users\user\Documents\LLM_14.pem
+   ✅ Sei pronto!
+
+Se hai creato NUOVA chiave (es: "meko-key.pem"):
+   1. Scarica il file .pem
+   2. Copia in: C:\Users\user\Documents\
+   3. Modifica DEPLOY_AUTOMATICO.bat riga 13:
+      
+      Da:  set KeyPath=C:\Users\user\Documents\LLM_14.pem
+      A:   set KeyPath=C:\Users\user\Documents\meko-key.pem
+
+
+STEP 3: DEPLOY AUTOMATICO (5 minuti)
+────────────────────────────────────────────────────────────────
+1. Dalla console AWS, copia l'IP PUBBLICO della tua istanza
+   (es: 54.123.456.78)
+
+2. Doppio click su: DEPLOY_AUTOMATICO.bat
+
+3. Inserisci l'IP quando richiesto
+
+4. Aspetta... (3-5 minuti)
+   ☕ Tempo per un caffè!
+
+5. Browser si apre automaticamente su: http://IP-EC2
+
+6. LOGIN:
+   Username: marco
+   Password: demo123
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+💰 COME RISPARMIARE AL MASSIMO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 STRATEGIA "STOP & START":
+
+OGNI SERA quando finisci di lavorare:
+  1. Console AWS → EC2 → Istanze
+  2. Seleziona istanza → Actions → Stop instance
+  ✅ COSTO: 0€/giorno
+
+OGNI MATTINA quando inizi:
+  1. Console AWS → EC2 → Istanze
+  2. Seleziona istanza → Actions → Start instance
+  3. Aspetta 1 minuto
+  4. NUOVO IP: copialo e accedi (l'IP cambia ogni start!)
+  
+📊 RISPARMIO: Da 8€/mese a ~2€/mese!
+
+ALTERNATIVA: Script automatico
+  Usa: GESTISCI_EC2_COSTI.bat
+  (richiede AWS CLI configurato)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+🔧 TROUBLESHOOTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❌ Problema: "Permission denied (publickey)"
+   Soluzione: 
+     1. PowerShell come Admin:
+        icacls "C:\Users\user\Documents\LLM_14.pem" /inheritance:r
+        icacls "C:\Users\user\Documents\LLM_14.pem" /grant:r "%username%:R"
+
+❌ Problema: "Connection timeout"
+   Soluzione:
+     • Verifica Security Group abbia porta 22 aperta
+     • Controlla che l'IP istanza sia corretto
+     • Aspetta 1-2 minuti dopo il launch
+
+❌ Problema: "App non si apre su http://IP"
+   Soluzione:
+     • Aspetta 5 minuti dopo il deploy
+     • Verifica porta 5000 aperta nel Security Group
+     • Controlla log: ssh ubuntu@IP
+       sudo journalctl -u offermanager -f
+
+❌ Problema: "Costs troppo alti!"
+   Soluzione:
+     • STOPPA istanza quando non usi!
+     • Verifica di avere t2.micro (non t2.small!)
+     • Controlla AWS Cost Explorer per dettagli
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+📱 DOPO IL DEPLOY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Accessibile da:
+   • PC ufficio
+   • Smartphone
+   • Tablet  
+   • Casa
+   • Ovunque!
+
+✅ URL: http://IP-PUBBLICO-EC2
+
+✅ Cambia password dopo primo accesso!
+
+✅ Per aggiornare app:
+   1. Modifica file localmente
+   2. Ri-esegui DEPLOY_AUTOMATICO.bat
+   3. Inserisci stesso IP
+
+✅ Per backup database:
+   scp -i LLM_14.pem ubuntu@IP:/home/ubuntu/offermanager/instance/offerte_crm.db ./backup/
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+🎉 PRONTO! 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Hai il tuo CRM su cloud per MENO DI UN CAFFÈ AL MESE! ☕
+
+Domande? Problemi? Apri console AWS e controlla lo stato dell'istanza.
+
+Buon lavoro! 🚀
+
+
+
+
+
+
+

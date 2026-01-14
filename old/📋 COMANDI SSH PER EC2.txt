@@ -1,0 +1,64 @@
+══════════════════════════════════════════════════════════════
+  COMANDI SSH PER CARICARE FILE SU EC2
+  IP: 13.53.183.146
+══════════════════════════════════════════════════════════════
+
+OPZIONE 1: Script Automatico
+──────────────────────────────
+Doppio click su: "🚀 DEPLOY UR PORTAL SU EC2.bat"
+Inserisci il percorso della chiave .pem quando richiesto.
+
+
+OPZIONE 2: Comandi Manuali (Copia/Incolla)
+────────────────────────────────────────────
+
+1. Apri PowerShell o CMD nella cartella del progetto
+
+2. Sostituisci "PERCORSO_CHIAVE.pem" con il percorso della tua chiave
+
+3. Esegui questi comandi uno alla volta:
+
+# Carica ur_portal_direct.py
+scp -i "PERCORSO_CHIAVE.pem" ur_portal_direct.py ubuntu@13.53.183.146:/home/ubuntu/offermanager/
+
+# Carica ur_portal_integration.py
+scp -i "PERCORSO_CHIAVE.pem" ur_portal_integration.py ubuntu@13.53.183.146:/home/ubuntu/offermanager/
+
+# Carica crm_app_completo.py
+scp -i "PERCORSO_CHIAVE.pem" crm_app_completo.py ubuntu@13.53.183.146:/home/ubuntu/offermanager/
+
+# Carica template HTML
+scp -i "PERCORSO_CHIAVE.pem" templates\app_mekocrm_completo.html ubuntu@13.53.183.146:/home/ubuntu/offermanager/templates/
+
+# Connetti e riavvia servizio
+ssh -i "PERCORSO_CHIAVE.pem" ubuntu@13.53.183.146 "cd /home/ubuntu/offermanager && sudo systemctl restart offermanager"
+
+
+OPZIONE 3: WinSCP (Interfaccia Grafica)
+─────────────────────────────────────────
+1. Apri WinSCP
+2. Connetti a: ubuntu@13.53.183.146
+3. Usa la chiave .ppk (converti .pem in .ppk se necessario)
+4. Vai in: /home/ubuntu/offermanager/
+5. Trascina i file:
+   - ur_portal_direct.py
+   - ur_portal_integration.py
+   - crm_app_completo.py
+   - templates/app_mekocrm_completo.html (nella cartella templates/)
+6. Connetti via SSH e riavvia:
+   sudo systemctl restart offermanager
+
+
+══════════════════════════════════════════════════════════════
+  VERIFICA DOPO IL DEPLOY
+══════════════════════════════════════════════════════════════
+
+1. Apri: http://13.53.183.146:8000/app
+2. Accedi con le tue credenziali
+3. Clicca su "🔄 Sync UR Portal"
+4. Verifica i log nella modale che si apre
+
+══════════════════════════════════════════════════════════════
+
+
+

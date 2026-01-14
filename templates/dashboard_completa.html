@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OfferManager CRM - ME.KO. Srl</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f0f2f5;
+            color: #1c1e21;
+        }
+        
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .navbar h1 { color: white; font-size: 28px; font-weight: 700; }
+        .navbar .user { color: white; display: flex; gap: 20px; align-items: center; }
+        .navbar .user a { color: white; text-decoration: none; padding: 8px 16px; background: rgba(255,255,255,0.2); border-radius: 6px; }
+        
+        .container { max-width: 1600px; margin: 30px auto; padding: 0 40px; }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            border-left: 4px solid #667eea;
+        }
+        
+        .stat-card h3 { color: #65676b; font-size: 13px; margin-bottom: 10px; text-transform: uppercase; }
+        .stat-card .value { font-size: 32px; font-weight: 700; color: #667eea; }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 24px;
+            background: white;
+            padding: 10px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            flex-wrap: wrap;
+        }
+        
+        .tab {
+            padding: 14px 20px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s;
+            color: #65676b;
+        }
+        
+        .tab:hover { background: #f0f2f5; }
+        .tab.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .card {
+            background: white;
+            padding: 28px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+        
+        .card h2 { font-size: 22px; margin-bottom: 20px; color: #1c1e21; }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+        
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 14px; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e4e6eb;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .form-group textarea { min-height: 90px; resize: vertical; }
+        
+        .btn {
+            padding: 14px 28px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 15px;
+        }
+        
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102,126,234,0.4); }
+        .btn:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+        
+        .excel-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .excel-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .excel-table th {
+            padding: 14px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+        
+        .excel-table td {
+            padding: 14px;
+            border-bottom: 1px solid #e4e6eb;
+            font-size: 14px;
+        }
+        
+        .excel-table tbody tr:hover { background: #f8f9fa; }
+        
+        .month-header {
+            padding: 16px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            margin: 30px 0 16px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .month-header h3 { font-size: 20px; }
+        .month-header .totale { font-size: 26px; font-weight: 700; }
+        
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        .badge.draft { background: #e4e6eb; color: #65676b; }
+        .badge.inviata { background: #fff3cd; color: #856404; }
+        .badge.accettata { background: #d4edda; color: #155724; }
+        .badge.rifiutata { background: #f8d7da; color: #721c24; }
+        
+        .badge.nuovo { background: #cfe2ff; color: #084298; }
+        .badge.contattato { background: #fff3cd; color: #997404; }
+        .badge.qualificato { background: #d1e7dd; color: #0a3622; }
+        .badge.convertito { background: #d4edda; color: #0f5132; }
+        .badge.perso { background: #f8d7da; color: #842029; }
+        
+        .cat-badge { padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+        .cat-MIR { background: #e3f2fd; color: #1976d2; }
+        .cat-UR { background: #f3e5f5; color: #7b1fa2; }
+        .cat-Unitree { background: #e8f5e9; color: #388e3c; }
+        .cat-Componenti { background: #fff3e0; color: #f57c00; }
+        .cat-Servizi { background: #fce4ec; color: #c2185b; }
+        
+        .alert {
+            padding: 14px 18px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            display: none;
+        }
+        .alert.success { background: #d4edda; color: #155724; border-left: 4px solid #28a745; }
+        .alert.error { background: #f8d7da; color: #721c24; border-left: 4px solid #dc3545; }
+        .alert.show { display: block; }
+        
+        .loading {
+            text-align: center;
+            padding: 30px;
+            display: none;
+        }
+        .loading.show { display: block; }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .products-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 14px;
+        }
+        .catalog-filters {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+            align-items: center;
+        }
+        .catalog-filters select,
+        .catalog-filters input {
+            padding: 10px 14px;
+            border: 2px solid #e4e6eb;
+            border-radius: 8px;
+            font-size: 14px;
+            min-width: 180px;
+        }
+        .catalog-filters select:focus,
+        .catalog-filters input:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+        
+        .product-card {
+            padding: 16px;
+            border: 2px solid #e4e6eb;
+            border-radius: 10px;
+            background: white;
+            transition: all 0.3s;
+        }
+        
+        .product-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 18px rgba(102, 126, 234, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .product-card h4 { color: #667eea; margin-bottom: 6px; font-size: 16px; }
+        .product-card .code { color: #999; font-size: 12px; margin-bottom: 8px; }
+        .product-card .desc { color: #555; font-size: 13px; margin-bottom: 10px; }
+        
+        .prices {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            font-size: 12px;
+        }
+        .price { padding: 4px 8px; border-radius: 6px; font-weight: 600; }
+        .price.bronze { background: #cd7f32; color: white; }
+        .price.silver { background: #c0c0c0; color: #333; }
+        .price.gold { background: #ffd700; color: #333; }
+        
+        .creator-offers {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .creator-offer-item {
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #e4e6eb;
+        }
+        
+        .creator-offer-item:hover {
+            background: #eef1f6;
+        }
+        
+        .creator-offer-info h4 { color: #667eea; margin-bottom: 4px; font-size: 16px; }
+        .creator-offer-info p { color: #666; font-size: 13px; }
+        
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 13px;
+            border: none;
+            border-radius: 6px;
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-small:hover { background: #5568d3; }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>📊 OfferManager CRM</h1>
+        <div class="user">
+            <span style="font-weight: 600;">👤 {{ username }}</span>
+            <a href="/logout">Esci</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>💰 Valore Offerte</h3>
+                <div class="value" id="stat-valore">€0</div>
+            </div>
+            <div class="stat-card">
+                <h3>📋 Offerte</h3>
+                <div class="value" id="stat-offerte">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>👥 Lead</h3>
+                <div class="value" id="stat-lead">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>✅ Chiusi</h3>
+                <div class="value" id="stat-chiusi">0%</div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="card" style="margin-bottom: 20px;">
+            <h2>🔗 Import da Portale UR</h2>
+            <p style="color:#666;font-size:13px;margin-bottom:10px;">Collega il CRM al portale UR per importare opportunità e lead. Richiede Selenium/Chrome configurati sulla macchina locale.</p>
+            <div id="ur-alert" class="alert"></div>
+            <div id="ur-loading" class="loading">
+                <div class="spinner"></div>
+                <p>Sincronizzazione UR in corso...</p>
+            </div>
+            <button id="ur-sync-btn" class="btn" onclick="syncUR()">🔄 Collegati al Portale UR</button>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab" onclick="switchTab('creator')">🚀 Creator Rapido</button>
+            <button class="tab active" onclick="switchTab('generatore')">🤖 Genera Offerta Auto</button>
+            <button class="tab" onclick="switchTab('nuova')">➕ Inserisci Manuale</button>
+            <button class="tab" onclick="switchTab('lead')">👤 Lead & Contatti</button>
+            <button class="tab" onclick="switchTab('excel')">📊 Vista Excel</button>
+            <button class="tab" onclick="switchTab('grafici')">📈 Grafici</button>
+        </div>
+
+        <!-- Tab Creator Rapido -->
+        <div id="creator-tab" class="tab-content">
+            <div class="card">
+                <h2>🚀 Offer Manager Creator</h2>
+                <div id="creator-alert" class="alert"></div>
+                
+                <form id="creator-form" onsubmit="createCreatorOffer(event)">
+                    <div class="form-group">
+                        <label>📝 Richiesta in Linguaggio Naturale *</label>
+                        <textarea id="creator-request" placeholder="Es: due unitree g1 bronze e un go2 edu silver" required style="min-height: 110px;"></textarea>
+                        <small style="color: #666;">Il sistema interpreta quantità, prodotto e listino (bronze/silver/gold).</small>
+                    </div>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>🏢 Nome Azienda Cliente</label>
+                            <input type="text" id="creator-client" placeholder="Es: Cliente Demo Srl">
+                        </div>
+                        <div class="form-group">
+                            <label style="display: flex; align-items: center; gap: 8px; margin-top: 28px;">
+                                <input type="checkbox" id="creator-search">
+                                Ricerca info azienda online
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" id="creator-submit" class="btn">⚡ Genera Offerta</button>
+                </form>
+                
+                <div id="creator-loading" class="loading">
+                    <div class="spinner"></div>
+                    <p>Generazione in corso...</p>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>📦 Prodotti Disponibili</h2>
+                <div class="catalog-filters">
+                    <select id="catalog-category" onchange="renderCatalogFor('creator')">
+                        <option value="all">Tutte le categorie</option>
+                    </select>
+                    <input type="text" id="catalog-search" placeholder="Cerca prodotto..." oninput="renderCatalogFor('creator')">
+                </div>
+                <div id="creator-products-list" class="products-list"></div>
+            </div>
+            
+            <div class="card">
+                <h2>📋 Offerte Generate</h2>
+                <button class="btn-small" style="align-self:flex-start;margin-bottom:14px;" onclick="loadCreatorOffers()">🔄 Aggiorna</button>
+                <div id="creator-offers-list" class="creator-offers"></div>
+            </div>
+        </div>
+
+        <!-- Tab Generatore Automatico -->
+        <div id="generatore-tab" class="tab-content active">
+            <div class="card">
+                <h2>🤖 Generatore Offerte Automatico</h2>
+                <div id="alert-gen" class="alert"></div>
+                
+                <div class="form-group">
+                    <label>💬 Scrivi richiesta in linguaggio naturale:</label>
+                    <textarea id="richiesta" placeholder="Es: due unitree g1 bronze&#10;Es: un mir 100 silver e tre gripper gold&#10;Es: 5 ur5e prezzo bronze" style="min-height: 120px;"></textarea>
+                    <small style="color: #666;">Il sistema capisce automaticamente prodotto, quantità e prezzo!</small>
+                </div>
+                
+                <div class="form-group">
+                    <label>🏢 Cliente:</label>
+                    <input type="text" id="gen-cliente" placeholder="Nome azienda cliente">
+                </div>
+                
+                <button class="btn" onclick="generaOffertaAuto()">🚀 Genera Offerta Automatica</button>
+                
+                <div id="catalogo-prodotti" style="margin-top: 30px;">
+                    <h3 style="margin-bottom: 16px;">📦 Prodotti Disponibili:</h3>
+                    <div class="catalog-filters">
+                        <select id="generatore-category" onchange="renderCatalogFor('generatore')">
+                            <option value="all">Tutte le categorie</option>
+                        </select>
+                        <input type="text" id="generatore-search" placeholder="Cerca prodotto..." oninput="renderCatalogFor('generatore')">
+                    </div>
+                    <div id="lista-prodotti" class="products-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Inserimento Manuale -->
+        <div id="nuova-tab" class="tab-content">
+            <div class="card">
+                <h2>➕ Inserisci Offerta Manuale</h2>
+                <div id="alert-nuova" class="alert"></div>
+                
+                <form id="form-nuova" onsubmit="salvaOfferta(event)">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>🏢 Cliente *</label>
+                            <input type="text" id="cliente" required>
+                        </div>
+                        <div class="form-group">
+                            <label>🏷️ Categoria *</label>
+                            <select id="categoria" required>
+                                <option value="">Seleziona...</option>
+                                <option value="MIR">🤖 MIR</option>
+                                <option value="UR">🦾 UR</option>
+                                <option value="Unitree">🦿 Unitree</option>
+                                <option value="Componenti">🔧 Componenti</option>
+                                <option value="Servizi">🛠️ Servizi</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>💶 Valore Totale (€) *</label>
+                            <input type="number" id="valore" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label>📦 Quantità</label>
+                            <input type="number" id="quantita" value="1">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>📝 Descrizione</label>
+                        <textarea id="descrizione"></textarea>
+                    </div>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>📊 Stato</label>
+                            <select id="stato">
+                                <option value="draft">Bozza</option>
+                                <option value="inviata">Inviata</option>
+                                <option value="accettata">Accettata</option>
+                                <option value="rifiutata">Rifiutata</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>📌 Note</label>
+                            <input type="text" id="note">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn">💾 Salva Offerta</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tab Lead & Contatti -->
+        <div id="lead-tab" class="tab-content">
+            <div class="card">
+                <h2>👤 Aggiungi Nuovo Lead/Contatto</h2>
+                <div id="alert-lead" class="alert"></div>
+                
+                <form id="form-lead" onsubmit="salvaLead(event)">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>👤 Nome Contatto *</label>
+                            <input type="text" id="lead-nome" required>
+                        </div>
+                        <div class="form-group">
+                            <label>🏢 Azienda</label>
+                            <input type="text" id="lead-azienda">
+                        </div>
+                        <div class="form-group">
+                            <label>📧 Email</label>
+                            <input type="email" id="lead-email">
+                        </div>
+                        <div class="form-group">
+                            <label>📞 Telefono</label>
+                            <input type="tel" id="lead-telefono">
+                        </div>
+                        <div class="form-group">
+                            <label>🎯 Interesse</label>
+                            <select id="lead-interesse">
+                                <option value="">Seleziona...</option>
+                                <option value="MIR">MIR</option>
+                                <option value="UR">UR</option>
+                                <option value="Unitree">Unitree</option>
+                                <option value="Componenti">Componenti</option>
+                                <option value="Servizi">Servizi</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>⚡ Priorità</label>
+                            <select id="lead-priorita">
+                                <option value="bassa">Bassa</option>
+                                <option value="media" selected>Media</option>
+                                <option value="alta">Alta</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>📝 Note</label>
+                        <textarea id="lead-note"></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn">💾 Salva Lead</button>
+                </form>
+            </div>
+            
+            <div class="card">
+                <h2>📋 I Miei Lead</h2>
+                <div id="lead-lista"></div>
+            </div>
+        </div>
+
+        <!-- Tab Vista Excel -->
+        <div id="excel-tab" class="tab-content">
+            <div class="card">
+                <h2>📊 Vista Excel - Diviso per Mese</h2>
+                <div id="excel-container"></div>
+            </div>
+        </div>
+
+        <!-- Tab Grafici -->
+        <div id="grafici-tab" class="tab-content">
+            <div class="card">
+                <h2>📈 Andamento nel Tempo</h2>
+                <canvas id="chart-timeline" height="100"></canvas>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="card">
+                    <h2>🎯 Per Categoria</h2>
+                    <canvas id="chart-categorie" height="80"></canvas>
+                </div>
+                <div class="card">
+                    <h2>📊 Per Stato</h2>
+                    <canvas id="chart-stati" height="80"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let chartTimeline, chartCategorie, chartStati;
+        let catalogData = [];
+        let catalogCategories = [];
+        const catalogTargets = {
+            creator: {
+                listId: 'creator-products-list',
+                categoryId: 'catalog-category',
+                searchId: 'catalog-search'
+            },
+            generatore: {
+                listId: 'lista-prodotti',
+                categoryId: 'generatore-category',
+                searchId: 'generatore-search'
+            }
+        };
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(tab + '-tab').classList.add('active');
+            event.target.classList.add('active');
+            
+            if (tab === 'creator') {
+                loadCatalogo();
+                loadCreatorOffers();
+            }
+            if (tab === 'lead') loadLead();
+            if (tab === 'excel') loadExcel();
+            if (tab === 'grafici') loadGrafici();
+            if (tab === 'generatore') loadCatalogo();
+        }
+
+        function showAlert(id, msg, type) {
+            const alert = document.getElementById(id);
+            alert.textContent = msg;
+            alert.className = 'alert ' + type + ' show';
+            setTimeout(() => alert.classList.remove('show'), 5000);
+        }
+
+        function renderCatalogFor(target) {
+            const config = catalogTargets[target];
+            if (!config) return;
+
+            const list = document.getElementById(config.listId);
+            if (!list) return;
+
+            if (!catalogData.length) {
+                list.innerHTML = '<p style="text-align:center;color:#666;">Nessun prodotto disponibile</p>';
+                return;
+            }
+
+            const categorySelect = document.getElementById(config.categoryId);
+            const searchInput = document.getElementById(config.searchId);
+            const selectedCategory = categorySelect ? categorySelect.value : 'all';
+            const term = searchInput ? searchInput.value.trim().toLowerCase() : '';
+
+            const filtered = catalogData.filter(p => {
+                const categoria = p.categoria || 'Altro';
+                if (selectedCategory !== 'all' && categoria !== selectedCategory) return false;
+                if (!term) return true;
+                const testo = `${p.nome} ${p.code} ${p.descrizione || ''}`.toLowerCase();
+                return testo.includes(term);
+            });
+
+            const formatPrezzo = value => typeof value === 'number' ? `€${value.toLocaleString('it-IT')}` : 'N/D';
+
+            if (!filtered.length) {
+                list.innerHTML = '<p style="text-align:center;color:#666;">Nessun prodotto trovato per i filtri selezionati.</p>';
+                return;
+            }
+
+            list.innerHTML = filtered.map(p => `
+                <div class="product-card">
+                    <h4>${p.nome}</h4>
+                    <div class="code">${p.code}</div>
+                    <div class="desc">${p.descrizione || ''}</div>
+                    <div class="prices">
+                        ${Object.entries(p.price_levels || {}).map(([label, value]) =>
+                            `<span class="price bronze">${label.replace(/_/g, ' ')}: ${formatPrezzo(value)}</span>`
+                        ).join('') || `
+                            <span class="price bronze">Bronze: ${formatPrezzo(p.prezzo_bronze)}</span>
+                            <span class="price silver">Silver: ${formatPrezzo(p.prezzo_silver)}</span>
+                            <span class="price gold">Gold: ${formatPrezzo(p.prezzo_gold)}</span>
+                        `}
+                    </div>
+                    <div style="margin-top:8px;font-size:12px;color:#888;">Categoria: ${p.categoria || 'Altro'}</div>
+                </div>
+            `).join('');
+        }
+
+        function renderCatalog() {
+            renderCatalogFor('creator');
+            renderCatalogFor('generatore');
+        }
+
+        async function syncUR() {
+            if (!confirm('Avviare la sincronizzazione con il portale UR? Questo processo può richiedere alcuni minuti.')) {
+                return;
+            }
+
+            const loading = document.getElementById('ur-loading');
+            const button = document.getElementById('ur-sync-btn');
+
+            loading.classList.add('show');
+            button.disabled = true;
+
+            try {
+                const res = await fetch('/api/ur-sync', { method: 'POST' });
+                const data = await res.json();
+
+                if (data.success) {
+                    const msg = `Opportunità: +${data.opportunities.imported} nuove, ${data.opportunities.updated} aggiornate. Lead: +${data.leads.imported} nuovi, ${data.leads.updated} aggiornati.`;
+                    showAlert('ur-alert', '✅ ' + msg, 'success');
+                    loadStats();
+                    loadLead();
+                    loadExcel();
+                } else {
+                    showAlert('ur-alert', '❌ ' + (data.error || 'Errore sincronizzazione UR'), 'error');
+                }
+            } catch (err) {
+                showAlert('ur-alert', '❌ Errore: ' + err.message, 'error');
+            } finally {
+                loading.classList.remove('show');
+                button.disabled = false;
+            }
+        }
+
+        async function createCreatorOffer(e) {
+            e.preventDefault();
+            
+            const richiesta = document.getElementById('creator-request').value.trim();
+            const cliente = document.getElementById('creator-client').value.trim();
+            const searchOnline = document.getElementById('creator-search').checked;
+            const loading = document.getElementById('creator-loading');
+            const btn = document.getElementById('creator-submit');
+            
+            if (!richiesta) {
+                showAlert('creator-alert', 'Inserisci una richiesta valida.', 'error');
+                return;
+            }
+            
+            loading.classList.add('show');
+            btn.disabled = true;
+            
+            try {
+                const res = await fetch('/api/creator/create', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        request: richiesta,
+                        company_name: cliente,
+                        search_online: searchOnline
+                    })
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    showAlert('creator-alert', `✅ Offerta ${data.offer_number} creata! Totale: €${data.total.toLocaleString('it-IT')}`, 'success');
+                    document.getElementById('creator-form').reset();
+                    loadCreatorOffers();
+                    loadStats();
+                } else {
+                    showAlert('creator-alert', '❌ ' + (data.error || 'Errore generazione'), 'error');
+                }
+            } catch (err) {
+                showAlert('creator-alert', '❌ Errore: ' + err.message, 'error');
+            } finally {
+                loading.classList.remove('show');
+                btn.disabled = false;
+            }
+        }
+
+        async function generaOffertaAuto() {
+            const richiesta = document.getElementById('richiesta').value;
+            const cliente = document.getElementById('gen-cliente').value;
+            
+            if (!richiesta) {
+                showAlert('alert-gen', 'Inserisci una richiesta!', 'error');
+                return;
+            }
+            
+            try {
+                const res = await fetch('/api/genera-offerta', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ richiesta, cliente })
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    showAlert('alert-gen', 
+                        `✅ Offerta ${data.numero} creata! ${data.quantita}x ${data.prodotto} = €${data.totale.toLocaleString()}`,
+                        'success');
+                    document.getElementById('richiesta').value = '';
+                    loadStats();
+                } else {
+                    showAlert('alert-gen', '❌ ' + data.error, 'error');
+                }
+            } catch (err) {
+                showAlert('alert-gen', '❌ Errore: ' + err.message, 'error');
+            }
+        }
+
+        async function salvaOfferta(e) {
+            e.preventDefault();
+            
+            try {
+                const res = await fetch('/api/offerte', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        cliente_nome: document.getElementById('cliente').value,
+                        categoria: document.getElementById('categoria').value,
+                        valore_totale: document.getElementById('valore').value,
+                        quantita: document.getElementById('quantita').value,
+                        descrizione: document.getElementById('descrizione').value,
+                        note: document.getElementById('note').value,
+                        stato: document.getElementById('stato').value
+                    })
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    showAlert('alert-nuova', `✅ Offerta ${data.numero} salvata!`, 'success');
+                    e.target.reset();
+                    loadStats();
+                }
+            } catch (err) {
+                showAlert('alert-nuova', '❌ Errore', 'error');
+            }
+        }
+
+        async function salvaLead(e) {
+            e.preventDefault();
+            
+            try {
+                const res = await fetch('/api/lead', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        nome: document.getElementById('lead-nome').value,
+                        azienda: document.getElementById('lead-azienda').value,
+                        email: document.getElementById('lead-email').value,
+                        telefono: document.getElementById('lead-telefono').value,
+                        interesse: document.getElementById('lead-interesse').value,
+                        priorita: document.getElementById('lead-priorita').value,
+                        note: document.getElementById('lead-note').value
+                    })
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    showAlert('alert-lead', '✅ Lead salvato!', 'success');
+                    e.target.reset();
+                    loadLead();
+                }
+            } catch (err) {
+                showAlert('alert-lead', '❌ Errore', 'error');
+            }
+        }
+
+        async function modificaOfferta(id) {
+            const nuovoStato = prompt('Nuovo stato (draft/inviata/accettata/rifiutata):');
+            if (!nuovoStato) return;
+            
+            try {
+                const res = await fetch(`/api/offerte/${id}`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ stato: nuovoStato })
+                });
+                
+                const data = await res.json();
+                if (data.success) {
+                    alert('✅ Offerta aggiornata!');
+                    loadExcel();
+                    loadStats();
+                    loadPersonalStats();
+                }
+            } catch (err) {
+                alert('❌ Errore aggiornamento');
+            }
+        }
+
+        async function cancellaOfferta(id) {
+            if (!confirm('Sicuro di voler cancellare questa offerta?')) return;
+            
+            try {
+                const res = await fetch(`/api/offerte/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await res.json();
+                if (data.success) {
+                    alert('✅ Offerta cancellata!');
+                    loadExcel();
+                    loadStats();
+                    loadPersonalStats();
+                }
+            } catch (err) {
+                alert('❌ Errore cancellazione');
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const res = await fetch('/api/stats');
+                const data = await res.json();
+                
+                document.getElementById('stat-valore').textContent = '€' + data.totale_valore.toLocaleString('it-IT');
+                document.getElementById('stat-offerte').textContent = data.totale_offerte;
+                document.getElementById('stat-lead').textContent = data.totale_lead;
+                
+                const accettate = data.per_stato.accettata || 0;
+                document.getElementById('stat-chiusi').textContent = 
+                    Math.round((accettate / (data.totale_offerte || 1)) * 100) + '%';
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function loadCreatorOffers() {
+            try {
+                const res = await fetch('/api/creator/offers');
+                if (!res.ok) return;
+                const data = await res.json();
+                
+                const list = document.getElementById('creator-offers-list');
+                if (!list) return;
+                
+                if (!data.offers || data.offers.length === 0) {
+                    list.innerHTML = '<p style="text-align:center;color:#666;">Nessuna offerta generata ancora</p>';
+                    return;
+                }
+                
+                list.innerHTML = data.offers.map(o => {
+                    const folderEncoded = encodeURIComponent(o.folder);
+                    const baseNameEncoded = encodeURIComponent(o.folder);
+                    const pdfButton = o.has_pdf
+                        ? `<a class="btn-small" style="margin-right:8px;" href="/creator/download/${folderEncoded}/${baseNameEncoded}.pdf">📄 PDF</a>`
+                        : '';
+                    const docxButton = `<a class="btn-small" style="background:#28a745;" href="/creator/download/${folderEncoded}/${baseNameEncoded}.docx">📝 DOCX</a>`;
+                    
+                    return `
+                        <div class="creator-offer-item">
+                            <div class="creator-offer-info">
+                                <h4>${o.number} • ${o.client}</h4>
+                                <p>${o.product || ''} • ${o.date || ''}</p>
+                            </div>
+                            <div>
+                                ${pdfButton}
+                                ${docxButton}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function loadCatalogo() {
+            try {
+                const res = await fetch('/api/catalogo');
+                const data = await res.json();
+
+                catalogData = data.prodotti || [];
+                catalogCategories = data.categorie || [];
+
+                const select = document.getElementById('catalog-category');
+                if (select) {
+                    select.innerHTML = '<option value="all">Tutte le categorie</option>' +
+                        catalogCategories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+                }
+
+                const generatoreSelect = document.getElementById('generatore-category');
+                if (generatoreSelect) {
+                    generatoreSelect.innerHTML = '<option value="all">Tutte le categorie</option>' +
+                        catalogCategories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+                }
+
+                renderCatalog();
+            } catch (err) {
+                console.error(err);
+                const list = document.getElementById('creator-products-list');
+                if (list) {
+                    list.innerHTML = '<p style="text-align:center;color:#c00;">Errore nel caricamento prodotti.</p>';
+                }
+                const list2 = document.getElementById('lista-prodotti');
+                if (list2) {
+                    list2.innerHTML = '<p style="text-align:center;color:#c00;">Errore nel caricamento prodotti.</p>';
+                }
+            }
+        }
+
+        async function loadLead() {
+            try {
+                const res = await fetch('/api/lead');
+                const data = await res.json();
+                
+                const lista = document.getElementById('lead-lista');
+                
+                if (data.lead.length === 0) {
+                    lista.innerHTML = '<p style="text-align:center;color:#666;padding:40px;">Nessun lead ancora</p>';
+                    return;
+                }
+                
+                lista.innerHTML = `
+                    <table class="excel-table">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Azienda</th>
+                                <th>Email</th>
+                                <th>Telefono</th>
+                                <th>Interesse</th>
+                                <th>Stato</th>
+                                <th>Priorità</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.lead.map(l => `
+                                <tr>
+                                    <td><strong>${l.nome}</strong></td>
+                                    <td>${l.azienda || '-'}</td>
+                                    <td>${l.email || '-'}</td>
+                                    <td>${l.telefono || '-'}</td>
+                                    <td><span class="cat-badge cat-${l.interesse}">${l.interesse || '-'}</span></td>
+                                    <td><span class="badge ${l.stato}">${l.stato}</span></td>
+                                    <td>${l.priorita}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function loadExcel() {
+            try {
+                const res = await fetch('/api/offerte');
+                const data = await res.json();
+                
+                const perMese = {};
+                data.offerte.forEach(o => {
+                    const parts = o.data.split('/');
+                    const mese = `${parts[1]}/${parts[2]}`;
+                    
+                    if (!perMese[mese]) perMese[mese] = { offerte: [], totale: 0 };
+                    perMese[mese].offerte.push(o);
+                    perMese[mese].totale += o.valore;
+                });
+                
+                const mesi = ['', 'Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
+                const container = document.getElementById('excel-container');
+                let html = '';
+                
+                Object.keys(perMese).sort((a, b) => {
+                    const [m1, y1] = a.split('/').map(Number);
+                    const [m2, y2] = b.split('/').map(Number);
+                    return (y2 * 12 + m2) - (y1 * 12 + m1);
+                }).forEach(mese => {
+                    const [m, y] = mese.split('/');
+                    const dati = perMese[mese];
+                    
+                    html += `
+                        <div class="month-header">
+                            <h3>📅 ${mesi[parseInt(m)]} ${y}</h3>
+                            <div class="totale">€${dati.totale.toLocaleString('it-IT')}</div>
+                        </div>
+                        <table class="excel-table" style="margin-bottom: 20px;">
+                            <thead>
+                                <tr>
+                                    <th>N° Offerta</th>
+                                    <th>Cliente</th>
+                                    <th>Categoria</th>
+                                    <th>Descrizione</th>
+                                    <th>Q.tà</th>
+                                    <th>Valore €</th>
+                                    <th>Stato</th>
+                                    <th>Data</th>
+                                    <th>Azioni</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${dati.offerte.map(o => `
+                                    <tr>
+                                        <td><strong>${o.numero}</strong></td>
+                                        <td>${o.cliente}</td>
+                                        <td><span class="cat-badge cat-${o.categoria}">${o.categoria}</span></td>
+                                        <td>${o.note || '-'}</td>
+                                        <td>${o.quantita}</td>
+                                        <td><strong>€${o.valore.toLocaleString('it-IT')}</strong></td>
+                                        <td><span class="badge ${o.stato}">${o.stato}</span></td>
+                                        <td>${o.data}</td>
+                                        <td>
+                                            <button onclick="modificaOfferta(${o.id})" style="padding:5px 10px; background:#667eea; color:white; border:none; border-radius:4px; cursor:pointer; margin-right:5px;">✏️</button>
+                                            <button onclick="cancellaOfferta(${o.id})" style="padding:5px 10px; background:#dc3545; color:white; border:none; border-radius:4px; cursor:pointer;">🗑️</button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                });
+                
+                container.innerHTML = html || '<p style="text-align:center;padding:60px;color:#999;">Nessuna offerta</p>';
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function loadGrafici() {
+            try {
+                const res = await fetch('/api/analytics');
+                const data = await res.json();
+                
+                const labels = data.dati.map(d => d.mese);
+                const datasets = [
+                    { label: 'MIR', data: data.dati.map(d => d.MIR), borderColor: '#1976d2', backgroundColor: 'rgba(25,118,210,0.1)', fill: true, tension: 0.4 },
+                    { label: 'UR', data: data.dati.map(d => d.UR), borderColor: '#7b1fa2', backgroundColor: 'rgba(123,31,162,0.1)', fill: true, tension: 0.4 },
+                    { label: 'Unitree', data: data.dati.map(d => d.Unitree), borderColor: '#388e3c', backgroundColor: 'rgba(56,142,60,0.1)', fill: true, tension: 0.4 },
+                    { label: 'Componenti', data: data.dati.map(d => d.Componenti), borderColor: '#f57c00', backgroundColor: 'rgba(245,124,0,0.1)', fill: true, tension: 0.4 },
+                    { label: 'Servizi', data: data.dati.map(d => d.Servizi), borderColor: '#c2185b', backgroundColor: 'rgba(194,24,91,0.1)', fill: true, tension: 0.4 }
+                ];
+                
+                if (chartTimeline) chartTimeline.destroy();
+                chartTimeline = new Chart(document.getElementById('chart-timeline'), {
+                    type: 'line',
+                    data: { labels, datasets },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom' },
+                            tooltip: {
+                                callbacks: {
+                                    label: ctx => ctx.dataset.label + ': €' + ctx.parsed.y.toLocaleString('it-IT')
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                // Altri grafici
+                const res2 = await fetch('/api/stats');
+                const stats = await res2.json();
+                
+                // Per categoria
+                const catLabels = Object.keys(stats.per_categoria);
+                const catValues = Object.values(stats.per_categoria);
+                
+                if (chartCategorie) chartCategorie.destroy();
+                chartCategorie = new Chart(document.getElementById('chart-categorie'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: catLabels,
+                        datasets: [{
+                            data: catValues,
+                            backgroundColor: ['#1976d2', '#7b1fa2', '#388e3c', '#f57c00', '#c2185b']
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+                });
+                
+                // Per stato
+                const statLabels = Object.keys(stats.per_stato);
+                const statValues = Object.values(stats.per_stato);
+                
+                if (chartStati) chartStati.destroy();
+                chartStati = new Chart(document.getElementById('chart-stati'), {
+                    type: 'pie',
+                    data: {
+                        labels: statLabels,
+                        datasets: [{
+                            data: statValues,
+                            backgroundColor: ['#e4e6eb', '#ffc107', '#28a745', '#dc3545']
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+                });
+                
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // Carica tutto all'avvio
+        loadStats();
+        loadCreatorOffers();
+        loadCatalogo();
+        setInterval(loadStats, 60000);
+    </script>
+</body>
+</html>
+

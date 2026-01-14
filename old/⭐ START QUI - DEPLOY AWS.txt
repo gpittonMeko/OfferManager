@@ -1,0 +1,162 @@
+╔══════════════════════════════════════════════════════════════╗
+║                                                              ║
+║        ⭐ DEPLOY OFFERMANAGER SU AWS - INIZIA QUI ⭐        ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+
+
+🎯 HAI 2 OPZIONI:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+┌──────────────────────────────────────────────────────────────┐
+│                                                              │
+│  ⚡ OPZIONE 1: DEPLOY RAPIDO (15 minuti) ⚡                 │
+│                                                              │
+│  ✅ Più semplice                                            │
+│  ✅ Tutto guidato                                           │
+│  ✅ Consigliato se è la prima volta                         │
+│                                                              │
+│  📂 Doppio click su:                                        │
+│     🚀 DEPLOY SU AWS ECONOMICO.bat                          │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+
+
+┌──────────────────────────────────────────────────────────────┐
+│                                                              │
+│  🤖 OPZIONE 2: CREAZIONE AUTOMATICA (10 minuti) 🤖          │
+│                                                              │
+│  ⚡ Più veloce                                               │
+│  ⚡ Crea istanza automaticamente                            │
+│  ⚠️  Richiede AWS CLI configurato                          │
+│                                                              │
+│  📂 Doppio click su:                                        │
+│     🎯 CREA EC2.bat                                         │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+💰 COSTI: Quanto spendo?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ ANNO 1:  GRATIS (Free Tier AWS)
+
+✅ ANNO 2+: 
+   • Se SEMPRE ACCESA:   ~8 €/mese
+   • Se STOPPI LA NOTTE: ~2.70 €/mese  ⭐ CONSIGLIATO
+   • Se USO WEEKEND:     ~0.60 €/mese
+
+💡 Leggi dettagli completi:
+   📂 💰 COSTI AWS E RISPARMIO.txt
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+📖 GUIDE DISPONIBILI:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📂 GUIDA_DEPLOY_ECONOMICO.txt
+   → Guida completa passo-passo (se hai dubbi)
+
+📂 💰 COSTI AWS E RISPARMIO.txt
+   → Tutti i costi e come risparmiare
+
+📂 AWS_DEPLOY_COMPLETO.md
+   → Documentazione tecnica dettagliata
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+🛠️ GESTIONE DOPO IL DEPLOY:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📂 GESTISCI_EC2_COSTI.bat
+   → Start/Stop istanza per risparmiare
+   → (richiede AWS CLI)
+
+🌐 Console AWS:
+   → https://console.aws.amazon.com/ec2
+   → Start/Stop manuale (più semplice)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+❓ COSA SERVE PER INIZIARE:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Account AWS (gratuito)
+   → https://aws.amazon.com/free
+
+✅ Chiave SSH (.pem)
+   → La crei durante setup EC2
+   → Oppure usi quella esistente: LLM_14.pem
+
+✅ 15 minuti di tempo
+
+✅ Connessione internet
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+🎉 DOPO IL DEPLOY:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ App accessibile da: http://IP-EC2
+
+✅ Da qualsiasi dispositivo:
+   • PC Ufficio
+   • PC Casa
+   • Smartphone
+   • Tablet
+
+✅ Login:
+   Username: marco
+   Password: demo123
+
+✅ Cambia password dopo primo accesso!
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+🚀 PRONTO? INIZIAMO!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+👉 Doppio click su: 🚀 DEPLOY SU AWS ECONOMICO.bat
+
+
+💡 SUGGERIMENTO:
+   Se è la tua prima volta con AWS, usa OPZIONE 1 (Deploy Rapido)
+   Ti guiderà passo-passo nella creazione dell'istanza EC2!
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+📞 PROBLEMI?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Leggi la sezione TROUBLESHOOTING in:
+📂 GUIDA_DEPLOY_ECONOMICO.txt
+
+Oppure consulta AWS_DEPLOY_COMPLETO.md per dettagli tecnici.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⭐ Buon deploy! ⭐
+
+
+
+
+
+
+

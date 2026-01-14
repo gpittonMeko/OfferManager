@@ -1,0 +1,17 @@
+ISTRUZIONI PER RIAVVIARE IL SERVER CLOUD
+========================================
+
+1. Carica il file modificato sulla macchina cloud:
+   
+   scp -i "PERCORSO_CHIAVE.pem" crm_app_completo.py ubuntu@IP_EC2:/home/ubuntu/offermanager/
+
+2. Riavvia il servizio:
+   
+   ssh -i "PERCORSO_CHIAVE.pem" ubuntu@IP_EC2 "sudo systemctl restart offermanager"
+
+3. Verifica lo stato:
+   
+   ssh -i "PERCORSO_CHIAVE.pem" ubuntu@IP_EC2 "sudo systemctl status offermanager"
+
+OPPURE usa lo script PowerShell:
+   .\riavvia_server_cloud.ps1

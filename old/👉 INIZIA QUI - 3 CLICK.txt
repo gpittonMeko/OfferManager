@@ -1,0 +1,136 @@
+╔══════════════════════════════════════════════════════════════╗
+║                                                              ║
+║              👉 DEPLOY AWS IN 3 SEMPLICI STEP 👈            ║
+║                                                              ║
+║                   TOTALE: 30 minuti                         ║
+║                   COSTI: 2.60 €/mese (anno 2+)             ║
+║                          GRATIS anno 1!                     ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 1️⃣ : CREA ISTANZA EC2 (5 minuti)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📂 Apri file: 🔥 CREA ISTANZA EC2 - 5 MINUTI.txt
+
+Oppure vai direttamente su:
+🌐 https://console.aws.amazon.com/ec2
+
+Configurazione:
+  • Nome: OfferManager-CRM
+  • Tipo: t2.micro (Free Tier)
+  • Storage: 8 GB
+  • Chiave: LLM_14
+
+📍 Annota IP pubblico alla fine!
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 2️⃣ : DEPLOY APP (10 minuti)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📂 Doppio click: DEPLOY_AUTOMATICO.bat
+
+Inserisci IP pubblico quando richiesto
+
+☕ Aspetta 5-10 minuti...
+
+🎉 App pronta! Browser si apre automaticamente
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 3️⃣ : RISPARMIA 67% (opzionale)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Per attivare istanza solo 8-19 lun-ven:
+
+📂 Apri: ⏰ AUTOMAZIONE START-STOP 8-19.txt
+
+Scegli:
+  • OPZIONE 1: Automazione AWS (setup 15 min)
+  • OPZIONE 3: Manuale (2 min/giorno)
+
+💰 Risparmio: Da 8€ a 2.60€/mese
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+✅ FATTO! 🎉
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Hai il tuo CRM cloud per 2.60 €/mese!
+
+🌐 Accesso: http://IP-PUBBLICO-EC2
+👤 Login: marco / demo123
+
+⚠️ Cambia password al primo accesso!
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+📖 VUOI PIÙ DETTAGLI?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📂 🎯 FAI QUESTO - DEPLOY COMPLETO.txt
+   → Guida dettagliata con checklist
+
+📂 💰 COSTI AWS E RISPARMIO.txt
+   → Tutti i costi e confronti
+
+📂 GUIDA_DEPLOY_ECONOMICO.txt
+   → Troubleshooting e FAQ
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+❓ HAI DUBBI?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Tutti i file hanno istruzioni dettagliate!
+
+Se hai problemi tecnici:
+📂 GUIDA_DEPLOY_ECONOMICO.txt (sezione Troubleshooting)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+🚀 PRONTO? VAI!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Inizia con STEP 1:
+📂 🔥 CREA ISTANZA EC2 - 5 MINUTI.txt
+
+
+💪 È facile! 30 minuti e sei online! 💪
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

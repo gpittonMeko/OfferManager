@@ -1,0 +1,168 @@
+══════════════════════════════════════════════════════════════
+           OFFERMANAGER CRM - GUIDA VELOCE
+══════════════════════════════════════════════════════════════
+
+
+🎯 COSA HAI ORA:
+══════════════════════════════════════════════════════════════
+
+✅ Sistema CRM completo per commerciali
+✅ Dashboard con grafici
+✅ Tracciamento offerte per categoria
+✅ Analytics per mese/settimana/giorno
+✅ Visualizzazione team
+✅ Login multipli commerciali
+
+
+📊 FUNZIONALITÀ:
+══════════════════════════════════════════════════════════════
+
+OGNI COMMERCIALE PUÒ:
+   ✅ Inserire offerte con:
+      - Cliente
+      - Categoria (MIR, UR, Unitree, Componenti, Servizi)
+      - Valore totale
+      - Quantità prodotti
+      - Note
+      - Stato (bozza/inviata/accettata/rifiutata)
+      - Probabilità chiusura
+
+   ✅ Vedere dashboard personale con:
+      - Valore totale sue offerte
+      - Numero offerte
+      - Offerte del mese
+      - Tasso chiusura
+
+   ✅ Vedere analytics con:
+      - Grafico timeline (per mese/settimana/giorno)
+      - Grafico per categoria
+      - Aggregato o separato
+
+   ✅ Vedere performance team:
+      - Tutti i commerciali
+      - Confronto valori
+      - Totale team
+
+
+🚀 TEST IN LOCALE:
+══════════════════════════════════════════════════════════════
+
+Doppio click: "🌐 TESTA CRM LOCALE.bat"
+
+Browser: http://localhost:5000
+
+Login:
+   Username: marco
+   Password: demo123
+
+
+🌐 DEPLOY SU AWS (Automatico):
+══════════════════════════════════════════════════════════════
+
+PASSO 1: Crea EC2
+   1. Console AWS → EC2 → Launch Instance
+   2. Ubuntu 22.04 LTS, t2.micro
+   3. Key pair: LLM_14 (o crea nuova)
+   4. Security: HTTP (80) e Custom TCP (5000)
+   5. Launch
+
+
+PASSO 2: Deploy Automatico
+   Doppio click: "DEPLOY_AUTOMATICO.bat"
+   
+   Inserisci IP pubblico EC2 quando chiede
+   
+   Lo script:
+   ✅ Carica tutti i file
+   ✅ Installa dipendenze
+   ✅ Avvia servizio
+   ✅ Apre browser
+
+
+PASSO 3: Accedi
+   Browser: http://IP_EC2:5000
+   
+   Login:
+      Username: marco
+      Password: demo123
+
+
+══════════════════════════════════════════════════════════════
+👥 UTENTI DEMO:
+══════════════════════════════════════════════════════════════
+
+Admin:
+   Username: admin
+   Password: admin123
+
+Commerciali:
+   marco / demo123
+   laura / demo123
+   giuseppe / demo123
+
+
+══════════════════════════════════════════════════════════════
+📋 CATEGORIE DISPONIBILI:
+══════════════════════════════════════════════════════════════
+
+• MIR          → Robot MIR (Mobile Industrial Robots)
+• UR           → Robot Universal Robots
+• Unitree      → Robot Unitree (umanoidi/quadrupedi)
+• Componenti   → Componenti e accessori
+• Servizi      → Formazione, supporto, installazione
+
+
+══════════════════════════════════════════════════════════════
+📊 GRAFICI DISPONIBILI:
+══════════════════════════════════════════════════════════════
+
+1. Timeline Offerte
+   - Valore per periodo
+   - Separato per categoria
+   - Per giorno/settimana/mese
+
+2. Distribuzione Categorie
+   - Grafico a torta
+   - Percentuali per categoria
+
+3. Performance Team
+   - Classifica commerciali
+   - Valore totale per commerciale
+
+
+══════════════════════════════════════════════════════════════
+🎯 WORKFLOW TIPICO:
+══════════════════════════════════════════════════════════════
+
+1. Login (commerciale)
+2. Tab "Nuova Offerta"
+   - Compila form
+   - Seleziona categoria
+   - Inserisci valore
+   - Salva
+3. Dashboard aggiornata automaticamente
+4. Tab "Analytics" per vedere grafici
+5. Tab "Team" per vedere tutti
+
+
+══════════════════════════════════════════════════════════════
+🔧 FILE IMPORTANTI:
+══════════════════════════════════════════════════════════════
+
+✅ 🌐 TESTA CRM LOCALE.bat     → Test locale
+✅ DEPLOY_AUTOMATICO.bat        → Deploy su AWS
+✅ 📋 GUIDA VELOCE CRM.txt      → Questo file
+✅ AWS_DEPLOY_COMPLETO.md       → Guida dettagliata
+
+
+══════════════════════════════════════════════════════════════
+
+         👉 INIZIA CON TEST LOCALE:
+
+         Doppio click: "🌐 TESTA CRM LOCALE.bat"
+         
+         Browser: http://localhost:5000
+         Login: marco / demo123
+
+══════════════════════════════════════════════════════════════
+

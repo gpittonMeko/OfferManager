@@ -1,0 +1,101 @@
+╔══════════════════════════════════════════════════════════════╗
+║                                                              ║
+║         IL CRM È GIÀ AVVIATO - APRI IL BROWSER!             ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+
+
+👉 APRI QUESTO LINK NEL BROWSER:
+══════════════════════════════════════════════════════════════
+
+   http://localhost:5000
+
+
+🔐 LOGIN:
+══════════════════════════════════════════════════════════════
+
+   Username: marco
+   Password: demo123
+
+
+✨ COSA VEDRAI:
+══════════════════════════════════════════════════════════════
+
+🎯 DASHBOARD con 4 Stats in Alto:
+   • Valore Totale Offerte
+   • Numero Offerte
+   • Offerte Mese Corrente  
+   • Tasso di Successo
+
+
+📋 TAB "Nuova Offerta":
+   Form bellissimo per inserire:
+   ✅ Cliente
+   ✅ Categoria (MIR/UR/Unitree/Componenti/Servizi)
+   ✅ Valore €
+   ✅ Quantità
+   ✅ Descrizione
+   ✅ Stato
+   ✅ Probabilità chiusura
+   ✅ Note
+
+
+📊 TAB "Vista Excel":
+   ✅ Tabella STILE EXCEL divisa per MESE!
+   ✅ Ogni mese ha la sua sezione
+   ✅ Totale per mese in alto
+   ✅ Colori categoria
+   ✅ Filtri per anno e categoria
+
+
+📈 TAB "Grafici":
+   ✅ Grafico TIMELINE con linee per categoria
+   ✅ Scegli periodo: Giorno/Settimana/Mese
+   ✅ Grafico TORTA per categoria
+   ✅ Grafico TORTA per stato
+   ✅ Tutti i grafici INTERATTIVI!
+
+
+👥 TAB "Team":
+   ✅ Card per ogni commerciale
+   ✅ Valore totale per commerciale
+   ✅ Totale team aggregato
+   ✅ Classifica performance
+
+
+══════════════════════════════════════════════════════════════
+🎨 PROVA SUBITO:
+══════════════════════════════════════════════════════════════
+
+1. Apri: http://localhost:5000
+2. Login: marco / demo123
+3. Tab "Nuova Offerta"
+4. Inserisci:
+      Cliente: Test Srl
+      Categoria: Unitree
+      Valore: 50000
+      Quantità: 2
+5. Clicca "Salva Offerta"
+6. Tab "Vista Excel" → Vedi tabella per mese!
+7. Tab "Grafici" → Vedi grafici colorati!
+
+
+══════════════════════════════════════════════════════════════
+🌐 PER DEPLOY SU AWS:
+══════════════════════════════════════════════════════════════
+
+Quando ti piace, deploy su AWS:
+
+   Doppio click: "DEPLOY_AUTOMATICO.bat"
+
+
+══════════════════════════════════════════════════════════════
+
+        👉 APRI ORA IL BROWSER:
+
+           http://localhost:5000
+
+        Login: marco / demo123
+
+══════════════════════════════════════════════════════════════
+

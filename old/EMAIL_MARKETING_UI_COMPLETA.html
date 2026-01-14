@@ -1,0 +1,209 @@
+<!-- SOSTITUIRE LA SEZIONE EMAIL MARKETING CON QUESTO CONTENUTO -->
+
+        <!-- Email Marketing -->
+        <section id="email-marketing-view" class="view">
+            <div class="hero">
+                <div>
+                    <h2>📧 Email Marketing</h2>
+                    <p style="color: var(--text-light);">Sistema completo per gestire campagne email, liste contatti e template</p>
+                </div>
+                <div class="hero-actions">
+                    <button class="button" onclick="switchEmailTab('compose')">✉️ Componi Email</button>
+                    <button class="button secondary" onclick="initEmailTemplates()">📥 Carica Template</button>
+                </div>
+            </div>
+            
+            <!-- Tab Navigation -->
+            <div style="display: flex; gap: 12px; margin-bottom: 24px; border-bottom: 2px solid var(--border-color); flex-wrap: wrap;">
+                <button class="email-tab-btn active" onclick="switchEmailTab('campaigns')" data-tab="campaigns">📬 Campagne</button>
+                <button class="email-tab-btn" onclick="switchEmailTab('lists')" data-tab="lists">👥 Liste Contatti</button>
+                <button class="email-tab-btn" onclick="switchEmailTab('templates')" data-tab="templates">📄 Template</button>
+                <button class="email-tab-btn" onclick="switchEmailTab('compose')" data-tab="compose">✉️ Componi Email</button>
+            </div>
+            
+            <!-- Tab: Campagne -->
+            <div id="email-tab-campaigns" class="email-tab-content active">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h3>Le tue Campagne Email</h3>
+                        <button class="button" onclick="switchEmailTab('compose')">+ Nuova Campagna</button>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Oggetto</th>
+                                    <th>Lista</th>
+                                    <th>Destinatari</th>
+                                    <th>Inviate</th>
+                                    <th>Stato</th>
+                                    <th>Data</th>
+                                    <th>Azioni</th>
+                                </tr>
+                            </thead>
+                            <tbody id="campaigns-table">
+                                <tr><td colspan="8" style="text-align: center; padding: 40px;">Caricamento...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tab: Liste -->
+            <div id="email-tab-lists" class="email-tab-content">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h3>Liste Contatti</h3>
+                        <button class="button" onclick="showNewEmailListForm()">+ Nuova Lista</button>
+                    </div>
+                    
+                    <!-- Form Nuova Lista (nascosto) -->
+                    <div id="new-email-list-form" style="display: none; margin-bottom: 24px; padding: 20px; background: var(--bg-light); border-radius: 8px;">
+                        <h4 style="margin-bottom: 16px;">Crea Nuova Lista</h4>
+                        <form id="email-list-form" class="form-grid">
+                            <div class="form-group">
+                                <label>Nome Lista *</label>
+                                <input type="text" id="list-name" name="name" required>
+                            </div>
+                            <div class="form-group full">
+                                <label>Descrizione</label>
+                                <textarea id="list-description" name="description" style="min-height: 80px;"></textarea>
+                            </div>
+                            <div class="form-group full" style="display: flex; gap: 12px; justify-content: flex-end;">
+                                <button type="button" class="button secondary" onclick="hideNewEmailListForm()">Annulla</button>
+                                <button type="submit" class="button">Crea Lista</button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Descrizione</th>
+                                    <th>Contatti</th>
+                                    <th>Azioni</th>
+                                </tr>
+                            </thead>
+                            <tbody id="email-lists-table">
+                                <tr><td colspan="4" style="text-align: center; padding: 40px;">Caricamento...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tab: Template -->
+            <div id="email-tab-templates" class="email-tab-content">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h3>Template Email</h3>
+                        <button class="button" onclick="showNewEmailTemplateForm()">+ Nuovo Template</button>
+                    </div>
+                    
+                    <!-- Form Nuovo Template (nascosto) -->
+                    <div id="new-email-template-form" style="display: none; margin-bottom: 24px; padding: 20px; background: var(--bg-light); border-radius: 8px;">
+                        <h4 style="margin-bottom: 16px;">Crea Nuovo Template</h4>
+                        <form id="email-template-form" class="form-grid">
+                            <div class="form-group">
+                                <label>Nome *</label>
+                                <input type="text" id="template-name" name="name" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Oggetto *</label>
+                                <input type="text" id="template-subject" name="subject" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Categoria</label>
+                                <select id="template-category" name="category">
+                                    <option value="newsletter">Newsletter</option>
+                                    <option value="promotional">Promozionale</option>
+                                    <option value="transactional">Transazionale</option>
+                                    <option value="other">Altro</option>
+                                </select>
+                            </div>
+                            <div class="form-group full">
+                                <label>Contenuto HTML *</label>
+                                <textarea id="template-html" name="html_content" style="min-height: 300px; font-family: monospace;" required></textarea>
+                                <small style="color: var(--text-light);">Variabili disponibili: %nome%, %first_name%, %last_name%</small>
+                            </div>
+                            <div class="form-group full" style="display: flex; gap: 12px; justify-content: flex-end;">
+                                <button type="button" class="button secondary" onclick="hideNewEmailTemplateForm()">Annulla</button>
+                                <button type="submit" class="button">Salva Template</button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Categoria</th>
+                                    <th>Oggetto</th>
+                                    <th>Azioni</th>
+                                </tr>
+                            </thead>
+                            <tbody id="email-templates-table">
+                                <tr><td colspan="4" style="text-align: center; padding: 40px;">Caricamento...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tab: Componi -->
+            <div id="email-tab-compose" class="email-tab-content">
+                <div class="card">
+                    <h3 style="margin-bottom: 16px;">Componi Nuova Email</h3>
+                    <form id="compose-email-form" class="form-grid">
+                        <div class="form-group">
+                            <label>Nome Campagna *</label>
+                            <input type="text" id="compose-campaign-name" name="campaign_name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Destinatari (Lista) *</label>
+                            <select id="compose-list-id" name="list_id" required onchange="updateRecipientCount()">
+                                <option value="">Seleziona lista...</option>
+                            </select>
+                            <small id="recipient-count" style="color: var(--text-light); display: block; margin-top: 4px;"></small>
+                        </div>
+                        <div class="form-group">
+                            <label>Oggetto Email *</label>
+                            <input type="text" id="compose-subject" name="subject" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Usa Template (opzionale)</label>
+                            <select id="compose-template-id" name="template_id" onchange="loadTemplateIntoComposer()">
+                                <option value="">Nessun template</option>
+                            </select>
+                        </div>
+                        <div class="form-group full">
+                            <label>Contenuto HTML *</label>
+                            <div style="margin-bottom: 8px;">
+                                <button type="button" class="button secondary" onclick="insertVariable('%nome%')" style="padding: 4px 8px; font-size: 12px; margin-right: 4px;">%nome%</button>
+                                <button type="button" class="button secondary" onclick="insertVariable('%first_name%')" style="padding: 4px 8px; font-size: 12px; margin-right: 4px;">%first_name%</button>
+                                <button type="button" class="button secondary" onclick="insertVariable('%last_name%')" style="padding: 4px 8px; font-size: 12px;">%last_name%</button>
+                            </div>
+                            <textarea id="compose-html-content" name="html_content" style="min-height: 400px; font-family: 'Courier New', monospace;" required></textarea>
+                            <small style="color: var(--text-light); display: block; margin-top: 4px;">Clicca sui pulsanti sopra per inserire variabili personalizzate</small>
+                        </div>
+                        <div class="form-group full" style="display: flex; gap: 12px; justify-content: flex-end; flex-wrap: wrap;">
+                            <button type="button" class="button secondary" onclick="previewComposedEmail()">👁️ Anteprima</button>
+                            <button type="button" class="button secondary" onclick="sendTestEmail()">📧 Test Email</button>
+                            <button type="button" class="button secondary" onclick="saveCampaignAsDraft()">💾 Salva Bozza</button>
+                            <button type="submit" class="button">🚀 Crea Campagna</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+
+
+
+
+
+

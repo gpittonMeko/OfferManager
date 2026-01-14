@@ -1,0 +1,58 @@
+══════════════════════════════════════════════════════════════
+              CRM OFFERMANAGER - AGGIORNATO!
+══════════════════════════════════════════════════════════════
+
+
+🔄 HO APPENA RIAVVIATO IL SERVER!
+══════════════════════════════════════════════════════════════
+
+1. Chiudi la pagina del browser
+
+2. Apri NUOVO tab browser
+
+3. Vai su: http://localhost:5000
+
+4. Fai CTRL + F5 (refresh forzato)
+
+5. Login: marco / demo123
+
+
+✨ ORA VEDRAI:
+══════════════════════════════════════════════════════════════
+
+✅ Dashboard moderna con gradiente viola/blu
+✅ 4 Stats card in alto colorate
+✅ 4 Tabs: Nuova Offerta / Vista Excel / Grafici / Team
+✅ Form bellissimo per inserire offerte
+✅ Tabella Excel divisa per MESE
+✅ Grafici Chart.js colorati
+✅ Tutto responsive e moderno
+
+
+📋 PROVA:
+══════════════════════════════════════════════════════════════
+
+1. Tab "Nuova Offerta"
+   - Cliente: Test Srl
+   - Categoria: Unitree
+   - Valore: 50000
+   - Salva
+
+2. Tab "Vista Excel"
+   - Vedi tabella per mese!
+
+3. Tab "Grafici"
+   - Vedi grafici colorati!
+
+
+══════════════════════════════════════════════════════════════
+
+    SE NON VEDI CAMBIAMENTI:
+
+    1. CHIUDI browser
+    2. RIAPRI nuovo tab
+    3. http://localhost:5000
+    4. Premi CTRL + F5
+
+══════════════════════════════════════════════════════════════
+

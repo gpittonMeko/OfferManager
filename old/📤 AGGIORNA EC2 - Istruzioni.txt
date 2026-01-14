@@ -1,0 +1,86 @@
+══════════════════════════════════════════════════════════════
+  AGGIORNA EC2 - File UR Portal Integration
+══════════════════════════════════════════════════════════════
+
+OPZIONE 1: Script Automatico (Windows con SCP)
+────────────────────────────────────────────────
+
+1. Doppio click su: "📤 AGGIORNA EC2 - File UR Portal.bat"
+
+2. Inserisci:
+   - IP pubblico della macchina EC2
+   - Percorso completo della chiave .pem
+
+3. Lo script caricherà automaticamente:
+   ✓ ur_portal_direct.py
+   ✓ ur_portal_integration.py
+   ✓ crm_app_completo.py
+   ✓ templates/app_mekocrm_completo.html
+
+4. Riavvierà automaticamente il servizio
+
+
+OPZIONE 2: Manuale con WinSCP (Windows)
+────────────────────────────────────────
+
+1. Apri WinSCP
+2. Connetti a EC2 con la chiave .ppk
+3. Vai in: /home/ubuntu/offermanager/
+4. Carica questi file:
+   - ur_portal_direct.py
+   - ur_portal_integration.py
+   - crm_app_completo.py
+   - templates/app_mekocrm_completo.html (nella cartella templates/)
+
+5. Connetti via SSH e riavvia:
+   sudo systemctl restart offermanager
+
+
+OPZIONE 3: Manuale con SCP (da terminale)
+──────────────────────────────────────────
+
+Da PowerShell o CMD:
+
+scp -i "chiave.pem" ur_portal_direct.py ubuntu@<IP-EC2>:/home/ubuntu/offermanager/
+scp -i "chiave.pem" ur_portal_integration.py ubuntu@<IP-EC2>:/home/ubuntu/offermanager/
+scp -i "chiave.pem" crm_app_completo.py ubuntu@<IP-EC2>:/home/ubuntu/offermanager/
+scp -i "chiave.pem" templates\app_mekocrm_completo.html ubuntu@<IP-EC2>:/home/ubuntu/offermanager/templates/
+
+Poi connetti via SSH:
+ssh -i "chiave.pem" ubuntu@<IP-EC2>
+sudo systemctl restart offermanager
+
+
+OPZIONE 4: Git (se usi repository)
+──────────────────────────────────
+
+Se hai un repository Git:
+
+1. Fai commit delle modifiche
+2. Push su GitHub/GitLab
+3. Su EC2:
+   cd /home/ubuntu/offermanager
+   git pull
+   sudo systemctl restart offermanager
+
+
+══════════════════════════════════════════════════════════════
+  VERIFICA DOPO L'AGGIORNAMENTO
+══════════════════════════════════════════════════════════════
+
+1. Controlla lo stato del servizio:
+   ssh -i "chiave.pem" ubuntu@<IP-EC2> "sudo systemctl status offermanager"
+
+2. Controlla i log:
+   ssh -i "chiave.pem" ubuntu@<IP-EC2> "sudo journalctl -u offermanager -f"
+
+3. Apri nel browser:
+   http://<IP-EC2>
+
+4. Prova la sincronizzazione UR Portal e verifica i log!
+
+
+══════════════════════════════════════════════════════════════
+
+
+

@@ -1,0 +1,28 @@
+MODIFICHE APPLICATE AL FILE DNS
+================================
+
+❌ RIMOSSI (record eliminati):
+1. "infomekosrl.it.",900,"MX","10 mail.register.it."
+
+⚠️ MODIFICATI (valori cambiati):
+1. "infomekosrl.it.",900,"MX","10 mxa.mailgun.org."
+   → "infomekosrl.it.",900,"MX","10 mxa.eu.mailgun.org."
+   
+2. "infomekosrl.it.",900,"MX","10 mxb.mailgun.org."
+   → "infomekosrl.it.",900,"MX","10 mxb.eu.mailgun.org."
+   
+3. "email.infomekosrl.it.",900,"CNAME","mailgun.org."
+   → "email.infomekosrl.it.",900,"CNAME","eu.mailgun.org."
+
+✅ AGGIUNTI (nuovi record):
+1. "s1._domainkey.infomekosrl.it.",900,"TXT","k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCyv+MPiEj5VfoD1q5AthXKSf0z2aL6n0Zh/wMxZi0EuP7mSFGXcTxx2nc0iTWkFoL67oGKu+GKx86t+L7GT8ctuTMldcURKKOYdFCCdgeDpnSv+++xaRQCo3G6k8IjgsEPRdPyoSDybo0MonISGg8FEm/gEdZ5rB6SZMw4W33HTwIDAQAB"
+
+✅ MANTENUTI (invariati):
+- Tutti gli altri record sono stati mantenuti così come erano
+
+
+
+
+
+
+

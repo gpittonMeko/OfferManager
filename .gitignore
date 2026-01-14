@@ -1,0 +1,55 @@
+# Database
+instance/
+*.db
+*.sqlite
+*.sqlite3
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+sync_output.txt
+
+# Temporary files
+*.tmp
+*.bak
+*.backup
+
+# Credentials (non committare mai!)
+*.pem
+*.key
+*.env
+setup_mailgun_credenziali.txt
+
+# Build
+build/
+dist/
+*.egg-info/
+
+# Generated files (opzionale - decommentare se non vuoi committare)
+# offerte_generate/
+# listini/*.pdf
+
+# OneDrive sync files
+~$*
+*.tmp

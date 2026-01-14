@@ -1,0 +1,76 @@
+══════════════════════════════════════════════════════════════
+                  OFFERMANAGER CRM
+           Dashboard Commerciali con Grafici
+══════════════════════════════════════════════════════════════
+
+
+🎯 IL SISTEMA È GIÀ AVVIATO!
+══════════════════════════════════════════════════════════════
+
+Apri il browser e vai su:
+
+   👉 http://localhost:5000
+
+
+🔐 Login con:
+   Username: marco
+   Password: demo123
+
+
+✨ HAI CREATO:
+══════════════════════════════════════════════════════════════
+
+✅ Dashboard con stats in tempo reale
+✅ Form per inserire offerte
+✅ Categorie: MIR, UR, Unitree, Componenti, Servizi
+✅ Vista Excel divisa per MESE
+✅ Grafici interattivi Chart.js
+✅ Grafico timeline per categoria
+✅ Grafico a torta distribuzione
+✅ Vista performance team
+✅ Login multipli commerciali
+
+
+📊 TABS DISPONIBILI:
+══════════════════════════════════════════════════════════════
+
+1. ➕ Nuova Offerta
+      → Form per inserire offerte
+      → Cliente, Categoria, Valore, Q.tà
+      → Stato e probabilità chiusura
+
+2. 📊 Vista Excel
+      → Tabella divisa per MESE
+      → Ogni mese separato
+      → Totale per mese
+      → Filtri anno e categoria
+
+3. 📈 Grafici
+      → Timeline per categoria
+      → Per giorno/settimana/mese
+      → Grafici a torta
+      → Tutto interattivo
+
+4. 👥 Team
+      → Performance tutti i commerciali
+      → Classifica valori
+      → Totale team
+
+
+🌐 DEPLOY SU AWS:
+══════════════════════════════════════════════════════════════
+
+Quando vuoi metterlo online:
+   Doppio click: "DEPLOY_AUTOMATICO.bat"
+
+
+══════════════════════════════════════════════════════════════
+
+            👉 APRI ADESSO:
+
+            http://localhost:5000
+
+            marco / demo123
+
+══════════════════════════════════════════════════════════════
+
