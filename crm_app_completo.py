@@ -8234,7 +8234,7 @@ def assistant():
     system_prompt = (
         "You are a CRM assistant. Reply ONLY in JSON with keys: reply (string), actions (array). "
         "Allowed action types: update_opportunity_stage, update_opportunity_category, update_opportunity_heat_level, "
-        "update_opportunity_amount, update_opportunity_close_date, create_task, query_data. "
+        "update_opportunity_amount, update_opportunity_close_date, create_task, query_data, create_campaign. "
         "For update_opportunity_stage: provide opportunity_id or opportunity_name, and stage. "
         "For update_opportunity_category: provide opportunity_id or opportunity_name, and category (UR, MiR, Unitree, Altri). "
         "For update_opportunity_heat_level: provide opportunity_id or opportunity_name, and heat_level (calda, tiepida, fredda_speranza, fredda_gelo, da_categorizzare). "
@@ -8260,7 +8260,10 @@ def assistant():
         "For names, be tolerant of typos and partial matches - use the closest match you can find. "
         "IMPORTANT: When user asks about 'grafico', 'andamento pipeline', 'trend', 'ultimi X mesi per categoria', "
         "or wants aggregated data by month and category, use query_type 'pipeline_trend' with months parameter (default 6). "
-        "Use 'pipeline_opportunities' only when user wants a list of individual opportunities, not aggregated data."
+        "Use 'pipeline_opportunities' only when user wants a list of individual opportunities, not aggregated data. "
+        "For create_campaign: provide campaign_name, subject, html_content (or product_url to extract info), "
+        "list_id or list_name, optional template_id, optional scheduled_at (YYYY-MM-DD HH:MM). "
+        "If product_url is provided, extract product name, description, price from the URL and create HTML content automatically."
     )
 
     # Log della richiesta
@@ -9115,6 +9118,158 @@ def assistant():
                         'deleted': True
                     })
         
+        elif action_type == 'create_campaign':
+            campaign_name = action.get('campaign_name', '').strip()
+            subject = action.get('subject', '').strip()
+            html_content = action.get('html_content', '').strip()
+            product_url = action.get('product_url', '').strip()
+            list_id = action.get('list_id')
+            list_name = action.get('list_name', '').strip()
+            template_id = action.get('template_id')
+            scheduled_at_str = action.get('scheduled_at', '').strip()
+            
+            if not campaign_name:
+                errors.append({'type': action_type, 'error': 'Nome campagna richiesto'})
+                continue
+            
+            # Risolvi lista email
+            email_list = None
+            if list_id:
+                email_list = EmailList.query.get(list_id)
+            elif list_name:
+                email_list = EmailList.query.filter(EmailList.name.ilike(f"%{list_name}%")).first()
+            
+            if not email_list:
+                errors.append({'type': action_type, 'error': f'Lista email non trovata: {list_name or list_id}'})
+                continue
+            
+            # Se c'è product_url, estrai informazioni dal prodotto
+            if product_url and not html_content:
+                try:
+                    import requests
+                    try:
+                        from bs4 import BeautifulSoup
+                    except ImportError:
+                        # Fallback: usa regex per estrarre info base
+                        BeautifulSoup = None
+                    
+                    # Fetch della pagina prodotto
+                    response = requests.get(product_url, timeout=10, headers={
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                    })
+                    response.raise_for_status()
+                    
+                    soup = BeautifulSoup(response.text, 'html.parser')
+                    
+                    # Estrai informazioni
+                    product_title = soup.find('h1')
+                    product_title_text = product_title.get_text(strip=True) if product_title else 'Prodotto'
+                    
+                    # Cerca prezzo
+                    price_elem = soup.find(class_=lambda x: x and ('prezzo' in x.lower() or 'price' in x.lower()))
+                    if not price_elem:
+                        price_elem = soup.find(string=lambda x: x and '€' in str(x))
+                    price_text = price_elem.get_text(strip=True) if price_elem else 'Contattaci per il prezzo'
+                    
+                    # Cerca descrizione
+                    desc_elem = soup.find('div', class_=lambda x: x and ('description' in x.lower() or 'descrizione' in x.lower()))
+                    if not desc_elem:
+                        desc_elem = soup.find('p')
+                    desc_text = desc_elem.get_text(strip=True)[:500] if desc_elem else ''
+                    
+                    # Crea HTML content
+                    html_content = f"""
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                        <h1 style="color: #1e40af; border-bottom: 3px solid #3b82f6; padding-bottom: 10px;">
+                            {product_title_text}
+                        </h1>
+                        <div style="margin: 20px 0;">
+                            <p style="font-size: 18px; color: #059669; font-weight: bold;">
+                                {price_text}
+                            </p>
+                        </div>
+                        {f'<p style="line-height: 1.6; color: #374151;">{desc_text}</p>' if desc_text else ''}
+                        <div style="margin: 30px 0; text-align: center;">
+                            <a href="{product_url}" 
+                               style="background-color: #3b82f6; color: white; padding: 15px 30px; 
+                                      text-decoration: none; border-radius: 6px; font-weight: bold; 
+                                      display: inline-block;">
+                                Scopri di più sul prodotto
+                            </a>
+                        </div>
+                        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+                        <p style="font-size: 12px; color: #6b7280; text-align: center;">
+                            ME.KO. Srl - Via Ettore Maiorana 32, 4 - 30020 Noventa di Piave (VE)<br>
+                            <a href="https://www.mekosrl.it" style="color: #3b82f6;">www.mekosrl.it</a>
+                        </p>
+                    </div>
+                    """
+                    
+                    # Se non c'era subject, crealo dal nome prodotto
+                    if not subject:
+                        subject = f"Scopri {product_title_text} - ME.KO. Srl"
+                    
+                except Exception as e:
+                    errors.append({'type': action_type, 'error': f'Errore estrazione dati da URL: {str(e)}'})
+                    continue
+            
+            if not html_content:
+                errors.append({'type': action_type, 'error': 'Contenuto HTML richiesto o URL prodotto valido'})
+                continue
+            
+            if not subject:
+                errors.append({'type': action_type, 'error': 'Subject email richiesto'})
+                continue
+            
+            # Parse scheduled_at se presente
+            scheduled_at = None
+            if scheduled_at_str:
+                try:
+                    scheduled_at = datetime.strptime(scheduled_at_str, '%Y-%m-%d %H:%M')
+                except:
+                    try:
+                        scheduled_at = datetime.fromisoformat(scheduled_at_str.replace('Z', '+00:00'))
+                    except:
+                        errors.append({'type': action_type, 'error': 'Formato data schedulazione non valido (usa YYYY-MM-DD HH:MM)'})
+                        continue
+            
+            # Crea text_content da HTML
+            text_content = None
+            if html_content:
+                try:
+                    if BeautifulSoup:
+                        text_content = BeautifulSoup(html_content, 'html.parser').get_text()
+                    else:
+                        import re
+                        text_content = re.sub(r'<[^>]+>', '', html_content)
+                except:
+                    import re
+                    text_content = re.sub(r'<[^>]+>', '', html_content)
+            
+            # Crea campagna
+            campaign = EmailCampaign(
+                name=campaign_name,
+                subject=subject,
+                html_content=html_content,
+                text_content=text_content,
+                list_id=email_list.id,
+                template_id=template_id,
+                scheduled_at=scheduled_at,
+                status='draft',
+                owner_id=session['user_id']
+            )
+            db.session.add(campaign)
+            db.session.commit()
+            
+            results.append({
+                'type': action_type,
+                'campaign_id': campaign.id,
+                'campaign_name': campaign.name,
+                'list_id': email_list.id,
+                'list_name': email_list.name,
+                'status': campaign.status
+            })
+        
         else:
             errors.append({'type': action_type or 'unknown', 'error': 'Tipo azione non supportato'})
 
@@ -9259,6 +9414,15 @@ def assistant():
                 if approval['entity_id']:
                     formatted_reply += f"   - ID: {approval['entity_id']}\n"
                 formatted_reply += f"   ⚠️ ATTENZIONE: Questa azione è irreversibile!\n"
+        
+        # Mostra risultati per create_campaign
+        for result_item in results:
+            if isinstance(result_item, dict) and result_item.get('type') == 'create_campaign':
+                formatted_reply += f"\n\n✅ **Campagna creata con successo!**\n"
+                formatted_reply += f"- **Nome:** {result_item.get('campaign_name')}\n"
+                formatted_reply += f"- **ID:** {result_item.get('campaign_id')}\n"
+                formatted_reply += f"- **Lista:** {result_item.get('list_name')}\n"
+                formatted_reply += f"- **Stato:** {result_item.get('status')}\n"
         
         formatted_reply += "\n\n💬 Per approvare, rispondi: 'approva' o 'sì'\n"
         formatted_reply += "💬 Per annullare, rispondi: 'annulla' o 'no'\n"
