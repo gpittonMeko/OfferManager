@@ -8727,30 +8727,30 @@ def assistant():
                             })
                 
                 elif query_type == 'account_opportunities':
-                account_name = action.get('account_name', '').strip()
-                if account_name:
-                    query = text("""
-                        SELECT o.id, o.name, o.amount, o.stage, o.heat_level, o.supplier_category,
-                               a.name as account_name, o.created_at
-                        FROM opportunities o
-                        LEFT JOIN accounts a ON o.account_id = a.id
-                        WHERE a.name LIKE :account_name
-                          AND o.stage NOT IN ('Closed Won', 'Closed Lost')
-                        ORDER BY o.created_at DESC
-                        LIMIT :limit
-                    """)
-                    results = db.session.execute(query, {'account_name': f'%{account_name}%', 'limit': limit}).fetchall()
-                    for row in results:
-                        query_results.append({
-                            'id': row[0],
-                            'name': row[1],
-                            'amount': row[2] or 0,
-                            'stage': row[3],
-                            'heat_level': row[4],
-                            'category': row[5],
-                            'account_name': row[6],
-                            'created_at': row[7].isoformat() if row[7] else None
-                        })
+                    account_name = action.get('account_name', '').strip()
+                    if account_name:
+                        query = text("""
+                            SELECT o.id, o.name, o.amount, o.stage, o.heat_level, o.supplier_category,
+                                   a.name as account_name, o.created_at
+                            FROM opportunities o
+                            LEFT JOIN accounts a ON o.account_id = a.id
+                            WHERE a.name LIKE :account_name
+                              AND o.stage NOT IN ('Closed Won', 'Closed Lost')
+                            ORDER BY o.created_at DESC
+                            LIMIT :limit
+                        """)
+                        results = db.session.execute(query, {'account_name': f'%{account_name}%', 'limit': limit}).fetchall()
+                        for row in results:
+                            query_results.append({
+                                'id': row[0],
+                                'name': row[1],
+                                'amount': row[2] or 0,
+                                'stage': row[3],
+                                'heat_level': row[4],
+                                'category': row[5],
+                                'account_name': row[6],
+                                'created_at': row[7].isoformat() if row[7] else None
+                            })
             
                 elif query_type == 'pipeline_opportunities':
                     # Tutte le opportunità attive nella pipeline (non chiuse)
