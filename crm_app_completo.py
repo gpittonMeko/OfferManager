@@ -8990,6 +8990,83 @@ def assistant():
                                 'contact_name': row[4] or 'N/A'
                             })
                 
+                elif query_type == 'user_tasks':
+                    # Query per vedere le attività di un utente specifico
+                    user_name = action.get('user_name', '').strip()
+                    user_id_param = action.get('user_id')
+                    
+                    # Risolvi user_id
+                    target_user_id = None
+                    if user_id_param:
+                        try:
+                            target_user_id = int(user_id_param)
+                        except:
+                            pass
+                    elif user_name:
+                        # Cerca utente per nome (fuzzy matching)
+                        users = User.query.all()
+                        user_name_lower = user_name.lower()
+                        for user in users:
+                            username_lower = user.username.lower()
+                            first_name_lower = (user.first_name or '').lower()
+                            last_name_lower = (user.last_name or '').lower()
+                            full_name_lower = f"{first_name_lower} {last_name_lower}".strip()
+                            
+                            if (user_name_lower in username_lower or 
+                                user_name_lower in first_name_lower or 
+                                user_name_lower in last_name_lower or
+                                user_name_lower in full_name_lower):
+                                target_user_id = user.id
+                                break
+                    
+                    if not target_user_id:
+                        errors.append({'type': action_type, 'error': f'Utente non trovato: {user_name or user_id_param}'})
+                        continue
+                    
+                    # Query tutte le attività dell'utente
+                    tasks_query = text("""
+                        SELECT t.id, t.task_type, t.description, t.assigned_to_id, t.due_date,
+                               t.is_completed, t.completed_at, t.opportunity_id, t.created_at,
+                               u.first_name || ' ' || u.last_name as assigned_to_name,
+                               o.name as opportunity_name, o.amount as opportunity_amount,
+                               a.name as account_name
+                        FROM opportunity_tasks t
+                        LEFT JOIN users u ON t.assigned_to_id = u.id
+                        LEFT JOIN opportunities o ON t.opportunity_id = o.id
+                        LEFT JOIN accounts a ON o.account_id = a.id
+                        WHERE t.assigned_to_id = :user_id
+                        ORDER BY t.due_date ASC NULLS LAST, t.created_at DESC
+                        LIMIT :limit
+                    """)
+                    tasks_results = db.session.execute(tasks_query, {'user_id': target_user_id, 'limit': limit}).fetchall()
+                    
+                    for row in tasks_results:
+                        task_type_map = {
+                            'call': '📞 Chiamare',
+                            'send_offer': '📧 Inviare Offerta',
+                            'recall': '🔄 Richiamare',
+                            'meeting': '🤝 Riunione',
+                            'other': '📋 Altro'
+                        }
+                        task_type_label = task_type_map.get(row[1], row[1])
+                        
+                        query_results.append({
+                            'id': row[0],
+                            'task_type': row[1],
+                            'task_type_label': task_type_label,
+                            'description': row[2],
+                            'assigned_to_id': row[3],
+                            'assigned_to_name': row[9],
+                            'due_date': row[4].isoformat() if row[4] and hasattr(row[4], 'isoformat') else (str(row[4]) if row[4] else None),
+                            'is_completed': bool(row[5]),
+                            'completed_at': row[6].isoformat() if row[6] and hasattr(row[6], 'isoformat') else (str(row[6]) if row[6] else None),
+                            'opportunity_id': row[7],
+                            'opportunity_name': row[10],
+                            'opportunity_amount': float(row[11]) if row[11] else 0,
+                            'account_name': row[12],
+                            'created_at': row[8].isoformat() if row[8] and hasattr(row[8], 'isoformat') else (str(row[8]) if row[8] else None)
+                        })
+                
                 if query_results:
                     result_item = {
                         'type': action_type,
@@ -9407,6 +9484,27 @@ def assistant():
                     formatted_reply += f"   📞 Telefono: {entity['phone']}\n"
                     if entity.get('contact_name') and entity['contact_name'] != 'N/A':
                         formatted_reply += f"   👤 Contatto: {entity['contact_name']}\n"
+                    formatted_reply += "\n"
+            
+            elif query_type == 'user_tasks' and query_results:
+                user_name = query_results[0].get('assigned_to_name', 'Utente') if query_results else 'Utente'
+                formatted_reply += f"\n\n📋 Attività di {user_name}:\n\n"
+                for task in query_results:
+                    status_icon = "✅" if task.get('is_completed') else "⏳"
+                    formatted_reply += f"{status_icon} {task.get('task_type_label', task.get('task_type', 'Attività'))}\n"
+                    formatted_reply += f"   📝 {task.get('description', 'Nessuna descrizione')}\n"
+                    if task.get('due_date'):
+                        formatted_reply += f"   📅 Scadenza: {task.get('due_date', 'N/A')}\n"
+                    if task.get('opportunity_name'):
+                        opp_id = task.get('opportunity_id')
+                        opp_link = f"#opportunities/{opp_id}" if opp_id else "#"
+                        formatted_reply += f"   💼 Opportunità: [{task.get('opportunity_name')}]({opp_link})\n"
+                        if task.get('opportunity_amount', 0) > 0:
+                            formatted_reply += f"   💰 Valore: €{task.get('opportunity_amount', 0):,.2f}\n"
+                    if task.get('account_name'):
+                        formatted_reply += f"   🏢 Account: {task.get('account_name')}\n"
+                    if task.get('is_completed') and task.get('completed_at'):
+                        formatted_reply += f"   ✅ Completata il: {task.get('completed_at', 'N/A')}\n"
                     formatted_reply += "\n"
     
     # Se ci sono azioni che richiedono approvazione, aggiungi dettagli alla risposta
