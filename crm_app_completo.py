@@ -214,14 +214,6 @@ class AssistantLog(TimestampMixin, db.Model):
     model_used = db.Column(db.String(50))  # Modello AI usato
     
     user = db.relationship("User", backref="assistant_logs")
-    is_completed = db.Column(db.Boolean, default=False)
-    completed_at = db.Column(db.DateTime)
-    completed_by_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
-    
-    account = db.relationship("Account", backref="tasks")
-    
-    assigned_to = db.relationship("User", foreign_keys=[assigned_to_id], backref="assigned_tasks")
-    completed_by = db.relationship("User", foreign_keys=[completed_by_id])
 
 
 class OpportunityLineItem(TimestampMixin, db.Model):
